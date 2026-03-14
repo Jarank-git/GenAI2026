@@ -5,6 +5,19 @@
 The foundational entry point for EcoLens. User photographs a product; the system identifies it
 and kicks off the full analysis pipeline (pricing, sustainability, alternatives).
 
+## Development Context — READ FIRST
+
+> **You do NOT have API keys or credentials.** Build all code structure, types, service
+> modules, and UI components with **mock/stub implementations** for every external API call.
+> Each service function should have the real logic scaffolded but return **hardcoded mock data**
+> when no API key is present. Use environment variable checks (`process.env.GEMINI_API_KEY`,
+> `process.env.CLOUDINARY_API_KEY`, etc.) to toggle between mock and real mode.
+>
+> **Your job**: build the complete code architecture so that when credentials are added later,
+> the only change is setting environment variables — no structural code changes needed.
+>
+> **Testing with real APIs will happen in a separate session** after credentials are configured.
+
 ## Problem Statement
 
 Users need a frictionless way to input products. Typing product names is slow and error-prone.

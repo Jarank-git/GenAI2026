@@ -9,6 +9,14 @@
 - Feature 06 (Externality Pricing) must be complete — provides externality costs
 - Feature 05 (Hyperlocal Context Engine) must be complete — provides vehicle profile for gas cost
 
+## Development Context — NO API CREDENTIALS
+
+**Good news: this feature is entirely client-side.** No API calls are made directly by the sorting/comparison layer. It consumes data from upstream features (01-03, 06), which will provide mock data.
+
+**Build everything fully.** Create a `src/data/mock-alternatives.ts` file with 8-10 realistic alternative products (each having all four sort dimensions populated) so all sort modes and UI components can be exercised end-to-end.
+
+**No API-related changes needed for this feature** — just make sure it handles the mock data from upstream features correctly.
+
 ## Build Order
 
 ### Step 1: Alternative Product Data Model

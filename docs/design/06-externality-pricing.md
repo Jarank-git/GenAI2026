@@ -6,6 +6,19 @@ Calculates and displays the hidden environmental cost of every product — the d
 reflected in the shelf price. Grounds these costs in established economic models, anchored
 by Canada's federal carbon price.
 
+## Development Context — READ FIRST
+
+> **You do NOT have API keys or credentials.** Build all externality calculators (carbon, water,
+> packaging, land use, eutrophication) with **mock/stub Gemini responses** for lifecycle research.
+> The monetization math (carbon price × kg CO2e, etc.) is pure calculation — build that fully.
+> Only the Gemini lifecycle research step needs mocking. Return realistic mock quantities for
+> common product types so the full calculation pipeline and UI can be tested.
+>
+> **Your job**: build the complete externality pricing engine so that enabling the Gemini API
+> requires only setting the environment variable — no structural code changes.
+>
+> **Testing with real APIs will happen in a separate session** after credentials are configured.
+
 ## Problem Statement
 
 The shelf price is incomplete. It excludes carbon emissions, water depletion, plastic

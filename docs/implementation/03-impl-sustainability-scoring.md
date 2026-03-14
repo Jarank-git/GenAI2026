@@ -6,9 +6,29 @@
 
 - Feature 01 (Product Scanning) must be complete — scoring needs product identity + category
 - Feature 05 (Hyperlocal Context Engine) should be complete — provides adjustment multipliers
-- Gemini API key configured
-- Open Food Facts API access
-- Google Maps API key for distance calculations
+- ~~Gemini API key configured~~ → **NOT AVAILABLE — use mock**
+- Open Food Facts API access — **free, can be called for real**
+- ~~Google Maps API key for distance calculations~~ → **NOT AVAILABLE — use mock**
+
+## Development Context — NO API CREDENTIALS
+
+**You do not have API keys.** The scoring engine has lots of pure calculation logic that doesn't need APIs:
+
+**Build fully (no API needed):**
+- Category weight configuration (Step 1) — pure config
+- Base score calculator (Step 5) — pure math
+- Hyperlocal adjustment layer (Step 6) — pure math
+- Score interpretation (Step 7) — pure mapping
+- Scoring orchestrator (Step 8) — pure orchestration
+
+**Build with mock/real toggle:**
+- Gemini sustainability research (Step 2) — mock returns realistic factor scores for 10+ products
+- Transport distance scoring (Step 4) — mock distance lookups, use hardcoded origin data
+- Open Food Facts enrichment (Step 3) — **can be called for real**
+
+**Mock data**: Create `src/data/mock-sustainability.ts` with realistic factor scores (0-100) per product across all 6 factors for common grocery items.
+
+**Testing with real APIs will happen in a separate session.**
 
 ## Build Order
 

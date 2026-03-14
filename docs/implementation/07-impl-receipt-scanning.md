@@ -8,8 +8,30 @@
 - Feature 02 (Multi-Layer Pricing) must be complete — prices alternatives
 - Feature 03 (Sustainability Scoring) must be complete — scores each item
 - Feature 06 (Externality Pricing) must be complete — calculates hidden costs
-- Cloudinary OCR add-on enabled
+- ~~Cloudinary OCR add-on enabled~~ → **NOT AVAILABLE — use mock**
 - This is a late-stage feature — build after core pipeline is working
+
+## Development Context — NO API CREDENTIALS
+
+**You do not have API keys.** Build the full pipeline with mock data:
+
+**Build with mock/real toggle:**
+- Receipt OCR (Step 1): mock returns realistic OCR text blocks from a sample Loblaws receipt
+- Gemini fuzzy matching (Step 3): mock maps common receipt shorthands to products
+
+**Build fully (no API needed):**
+- Receipt parser (Step 2) — pure text parsing logic
+- Batch analysis pipeline (Step 4) — orchestration using upstream feature mocks
+- Sustainability receipt generator (Step 5) — pure aggregation
+- Optimized basket calculator (Step 6) — pure algorithm
+- All UI components (Steps 7-8) — pure React
+
+**Create `src/data/mock-receipt.ts`** with:
+- A sample receipt OCR output (15-20 items from a Loblaws receipt)
+- Matching product identifications for each item
+- This allows the full pipeline to be tested end-to-end without any credentials
+
+**Testing with real APIs will happen in a separate session.**
 
 ## Build Order
 

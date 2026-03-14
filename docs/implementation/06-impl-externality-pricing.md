@@ -6,8 +6,30 @@
 
 - Feature 05 (Hyperlocal Context Engine) must be complete — provides regional adjustments
 - Feature 01 (Product Scanning) must be complete — provides product identity
-- Gemini API key configured
-- ECCC carbon pricing reference data available
+- ~~Gemini API key configured~~ → **NOT AVAILABLE — use mock**
+- ECCC carbon pricing reference data — **publicly available, embed as config**
+
+## Development Context — NO API CREDENTIALS
+
+**You do not have API keys.** However, most of this feature is **pure calculation logic** that doesn't need APIs:
+
+**Build fully (no API needed):**
+- Externality constants & pricing config (Step 1) — pure config, all publicly available data
+- Carbon cost calculator (Step 3) — pure math
+- Water cost calculator (Step 4) — pure math
+- Packaging cost calculator (Step 5) — pure math
+- Land use & eutrophication calculators (Step 6) — pure math
+- Externality aggregator (Step 7) — pure orchestration
+- Display component (Step 8) — pure UI
+- Cache layer (Step 9) — pure code
+
+**Build with mock/real toggle:**
+- Gemini lifecycle research (Step 2) — **only mock needed here**: return realistic physical quantities (kg CO2e, litres water, grams plastic) for 10-15 common products
+- Create `src/data/mock-lifecycle.ts` with lifecycle data for common grocery/household items
+
+**This is one of the most "buildable" features without credentials** since 8 of 9 steps are pure code.
+
+**Testing with real APIs will happen in a separate session.**
 
 ## Build Order
 

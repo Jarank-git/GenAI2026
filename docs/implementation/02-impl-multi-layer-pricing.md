@@ -5,9 +5,33 @@
 ## Prerequisites
 
 - Feature 01 (Product Scanning) must be complete — pricing needs a product identity
-- PC Express API key obtained (unofficial — may require reverse-engineering headers)
-- Gemini API key with Google Search Grounding enabled
-- Redis or in-memory cache solution available
+- ~~PC Express API key obtained~~ → **NOT AVAILABLE — use mock**
+- ~~Gemini API key with Google Search Grounding enabled~~ → **NOT AVAILABLE — use mock**
+- In-memory cache (use a simple Map or Next.js cache — no Redis needed for dev)
+
+## Development Context — NO API CREDENTIALS
+
+**You do not have API keys.** Build all three pricing layers with mock/real toggle:
+
+```typescript
+export async function queryPCExpress(product: string, banner: string): Promise<PriceResult | null> {
+  if (process.env.PC_EXPRESS_API_KEY) {
+    return realPCExpressQuery(product, banner);  // Scaffold real implementation
+  }
+  return mockPCExpressQuery(product, banner);    // Return realistic mock prices
+}
+```
+
+**Mock data requirements:**
+- Layer 1 mock: realistic Loblaw banner prices for 10-15 common grocery products across 3-4 banners (Loblaws, No Frills, Superstore)
+- Layer 2 mock: realistic web-estimate prices for Walmart, Metro, Sobeys
+- Include realistic price variation between stores ($2.49 vs $2.99 vs $3.29)
+- Tag mock data with correct confidence labels (`verified` for L1, `web_estimate` for L2)
+- Create `src/data/mock-prices.ts` with the mock pricing dataset
+
+**The aggregation, deduplication, gas cost calculation, and caching logic are pure code** — build these fully, they don't need API keys.
+
+**Testing with real APIs will happen in a separate session.**
 
 ## Build Order
 

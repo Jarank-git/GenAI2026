@@ -4,10 +4,31 @@
 
 ## Prerequisites
 
-- Google Maps Geocoding API key configured
-- NRCan datasets downloaded or API access configured
-- ECCC and HFED API access configured
+- ~~Google Maps Geocoding API key configured~~ → **NOT AVAILABLE — use mock**
+- NRCan datasets — **publicly available CSVs, can be embedded as static JSON**
+- ECCC grid data — **publicly available, can be embedded as static JSON**
+- ~~HFED real-time API~~ → **NOT AVAILABLE — use static ECCC values instead**
 - No feature dependencies — this is a foundational feature (build early)
+
+## Development Context — NO API CREDENTIALS
+
+**You do not have API keys.** However, much of this feature uses **publicly available static datasets** that can be embedded directly:
+
+**Build fully with embedded data (no API needed):**
+- NRCan vehicle fuel consumption data → download CSV, parse to JSON, embed in `src/data/`
+- ECCC grid emission intensity factors → embed as `src/data/grid-intensity.json`
+- Seasonal produce calendar → build static lookup table in `src/data/seasonal-produce.json`
+- User profile data model + onboarding UI → pure client-side code
+
+**Build with mock/real toggle:**
+- Geocoding (Step 2): mock with hardcoded lat/lng for Toronto, Calgary, Vancouver, Montreal
+- Gas prices (Step 4): use recent NRCan published averages as hardcoded fallback
+- Water stress (Step 6): mock with hardcoded stress indices for major regions
+- Recycling lookup (Step 7): mock with hardcoded recycling lists for Toronto, Calgary, Vancouver
+
+**Create `src/data/mock-hyperlocal.ts`** with realistic context data for 3-4 Canadian cities so the adjustment calculator can be fully tested.
+
+**Testing with real APIs will happen in a separate session.**
 
 ## Build Order
 

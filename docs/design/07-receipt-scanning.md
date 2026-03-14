@@ -6,6 +6,19 @@ Photograph a grocery receipt after shopping. The app analyzes every item purchas
 generates sustainability scores, calculates true costs, and recommends an optimized basket
 for next time. Zero friction entry point — meets users where they already are.
 
+## Development Context — READ FIRST
+
+> **You do NOT have API keys or credentials.** Build the full receipt scanning pipeline with
+> **mock/stub implementations** for Cloudinary OCR, Gemini fuzzy matching, and all downstream
+> analysis. Use a **hardcoded sample receipt** (realistic Loblaws/No Frills receipt with 10-15
+> items) as test data so the parser, matcher, sustainability receipt generator, and optimized
+> basket calculator can all be built and tested end-to-end without credentials.
+>
+> **Your job**: build the complete receipt scanning architecture so that enabling real APIs
+> requires only setting environment variables — no structural code changes.
+>
+> **Testing with real APIs will happen in a separate session** after credentials are configured.
+
 ## Problem Statement
 
 Nobody scans 30 products one by one while shopping. Existing sustainability apps demand

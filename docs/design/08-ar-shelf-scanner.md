@@ -6,6 +6,19 @@ User points their phone at a store shelf. The app identifies multiple products s
 overlays color-coded sustainability scores, and highlights the best option. Scan the whole
 shelf instead of one product at a time.
 
+## Development Context — READ FIRST
+
+> **You do NOT have API keys or credentials.** Build the full shelf scanning pipeline with
+> **mock/stub implementations** for Cloudinary object detection, Gemini batch identification,
+> and all downstream analysis. Use **hardcoded mock detection results** (bounding boxes,
+> product names) so the overlay renderer, tap interactions, and sort toggle can be fully
+> built and tested without credentials.
+>
+> **Your job**: build the complete shelf scanner architecture so that enabling real APIs
+> requires only setting environment variables — no structural code changes.
+>
+> **Testing with real APIs will happen in a separate session** after credentials are configured.
+
 ## Problem Statement
 
 Single-product scanning is tedious. In a store aisle with 15 pasta brands, scanning each one

@@ -6,6 +6,21 @@ The personalization layer that makes EcoLens scores meaningful. Every score pass
 this engine, which adjusts based on the user's vehicle, location, provincial energy grid,
 local water stress, municipal recycling capabilities, and seasonal context.
 
+## Development Context — READ FIRST
+
+> **You do NOT have API keys or credentials.** Build all hyperlocal services (geocoding, vehicle
+> lookup, gas prices, grid intensity, water stress, recycling, seasonal data) with **mock/stub
+> implementations**. Use realistic hardcoded data for a few Canadian locations (e.g., Toronto ON,
+> Calgary AB, Vancouver BC) so the adjustment calculator and onboarding UI can be fully tested.
+>
+> **Static datasets** (NRCan vehicles, seasonal produce, grid intensity factors) can be built
+> from publicly available CSV/JSON data embedded in the project — these don't require API keys.
+>
+> **Your job**: build the complete hyperlocal engine so that enabling real APIs (Google Maps,
+> ECCC, HFED) requires only setting environment variables — no structural code changes.
+>
+> **Testing with real APIs will happen in a separate session** after credentials are configured.
+
 ## Problem Statement
 
 A sustainability score that's identical in Calgary and Vancouver is misleading. Alberta's

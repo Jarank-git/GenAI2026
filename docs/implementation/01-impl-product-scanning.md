@@ -4,10 +4,32 @@
 
 ## Prerequisites
 
-- Cloudinary account with API keys configured
-- Gemini API key with vision capabilities enabled
-- Open Food Facts API access (no key required)
+- ~~Cloudinary account with API keys configured~~ → **NOT AVAILABLE — use mock**
+- ~~Gemini API key with vision capabilities enabled~~ → **NOT AVAILABLE — use mock**
+- Open Food Facts API access (no key required) — **this one is free and can be called**
 - No feature dependencies — this is a foundational feature
+
+## Development Context — NO API CREDENTIALS
+
+**You do not have API keys.** Build every service module with a mock/real toggle pattern:
+
+```typescript
+// Pattern for every API service:
+export async function identifyProduct(input: ImageInput): Promise<Product> {
+  if (process.env.GEMINI_API_KEY) {
+    return realGeminiIdentify(input);  // Real implementation (scaffold this)
+  }
+  return mockIdentify(input);          // Mock implementation (build this fully)
+}
+```
+
+**Mock data requirements:**
+- Cloudinary mocks: return realistic `{ barcode, ocr_text, brand_detected, confidence }` for 5-10 sample products
+- Gemini mocks: return realistic `{ product_name, brand, category, weight_volume, confidence }` for those same products
+- Open Food Facts: **can be called for real** (no API key needed) — use this as the one live data source
+- Create a `src/data/mock-products.ts` file with sample product data used across all mocks
+
+**Testing with real APIs will happen in a separate session.** Focus on building correct code structure, types, and UI that work end-to-end with mock data.
 
 ## Build Order
 

@@ -6,6 +6,18 @@ A category-agnostic scoring system (0-100) that evaluates products across enviro
 ethical, and lifecycle dimensions. Scoring weights shift by product category to reflect
 what matters most for that type of product.
 
+## Development Context — READ FIRST
+
+> **You do NOT have API keys or credentials.** Build the full scoring engine — category weights,
+> factor scoring, hyperlocal adjustments, score interpretation — with **mock/stub API responses**.
+> Gemini sustainability research and Open Food Facts lookups should return realistic mock data
+> so the scoring math and UI can be fully exercised without credentials.
+>
+> **Your job**: build the complete scoring pipeline so that enabling real APIs requires only
+> setting environment variables — no structural code changes.
+>
+> **Testing with real APIs will happen in a separate session** after credentials are configured.
+
 ## Problem Statement
 
 Existing sustainability apps give static, generic scores that don't account for product

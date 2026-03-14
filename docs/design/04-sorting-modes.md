@@ -6,6 +6,19 @@ The core interaction layer. Once alternatives are loaded, users switch between f
 ranking perspectives. Each mode answers a different user question and uses a different
 calculation to sort results.
 
+## Development Context — READ FIRST
+
+> **You do NOT have API keys or credentials.** This feature is mostly client-side sorting logic
+> and UI — it does not call external APIs directly. Build it using **mock alternative product
+> data** (realistic scores, prices, externalities) so all four sort modes and the UI can be
+> fully tested. The mock data should come from upstream features (01-03, 06) which will also
+> use mocks.
+>
+> **Your job**: build the complete sorting + comparison UI so it works end-to-end with mock data
+> and requires zero changes when real API data flows through.
+>
+> **Testing with real APIs will happen in a separate session** after credentials are configured.
+
 ## Problem Statement
 
 Users have different priorities. Some want the greenest product regardless of cost. Others

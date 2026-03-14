@@ -5,6 +5,18 @@
 A three-layer system that ensures every price shown to users is real — never hallucinated.
 Addresses the fundamental LLM limitation: Gemini will fabricate prices if asked to guess.
 
+## Development Context — READ FIRST
+
+> **You do NOT have API keys or credentials.** Build all three pricing layers (PC Express,
+> Gemini Grounded Search, URL Context) as complete service modules with **mock/stub responses**.
+> Each layer should return realistic mock pricing data (realistic CAD prices, store names,
+> confidence tags) so the UI and aggregation logic can be built and tested end-to-end.
+>
+> **Your job**: build the complete pricing architecture so that swapping in real API calls
+> requires only setting environment variables — no structural code changes.
+>
+> **Testing with real APIs will happen in a separate session** after credentials are configured.
+
 ## Problem Statement
 
 LLMs hallucinate prices. No single Canadian pricing API covers all stores. EcoLens needs

@@ -8,8 +8,32 @@
 - Feature 02 (Multi-Layer Pricing) must be complete — prices each product
 - Feature 03 (Sustainability Scoring) must be complete — scores each product
 - Feature 06 (Externality Pricing) must be complete — calculates hidden costs
-- Cloudinary object detection capabilities enabled
+- ~~Cloudinary object detection capabilities enabled~~ → **NOT AVAILABLE — use mock**
 - This is a late-stage feature — build after core pipeline + receipt scanning
+
+## Development Context — NO API CREDENTIALS
+
+**You do not have API keys.** Build the full pipeline with mock data:
+
+**Build with mock/real toggle:**
+- Multi-product detection (Step 2): mock returns realistic bounding boxes + OCR for 8-10 products
+- Batch identification (Step 3): mock returns product identifications for detected items
+
+**Build fully (no API needed):**
+- Shelf image capture UI (Step 1) — pure camera/React component
+- Parallel scoring & pricing (Step 4) — orchestration using upstream feature mocks
+- Overlay renderer (Step 5) — pure rendering logic (Canvas/CSS overlays on image)
+- Product detail tap interaction (Step 6) — pure UI
+- Sort toggle (Step 7) — pure UI
+- Cache layer (Step 8) — pure code
+- Progressive loading UX (Step 9) — pure UI state management
+
+**Create `src/data/mock-shelf.ts`** with:
+- Sample bounding box data for a grocery shelf (8-10 products with positions)
+- Product identifications for each bounding box
+- This allows the overlay renderer and interactions to be fully tested
+
+**Testing with real APIs will happen in a separate session.**
 
 ## Build Order
 
