@@ -1,121 +1,185 @@
-# EcoLens
+# EcoLens — Project Intelligence
 
-Canadian-focused sustainability scoring app. Scan a product, get alternatives ranked by sustainability, price, and environmental impact — personalized to your location, vehicle, and local infrastructure.
+> Canadian-focused sustainability app that reveals the true cost of products — environmental,
+> ethical, and financial — personalized to the user's location and circumstances.
 
-## Project Status
+## Tech Stack
 
-Design phase. No code yet. Full design doc: `hackathon-plan.md`
+- **Framework**: Next.js 16.1.6 (App Router, Turbopack dev server)
+- **Runtime**: React 19.2.3, TypeScript 5
+- **Styling**: Tailwind CSS 4 (via @tailwindcss/postcss)
+- **Deployment**: Vercel (zero-config, auto-detected from next.config.ts)
+- **Dev command**: `npm run dev` (uses `next dev --turbopack`)
 
-## Core Flow
+## Quick Orientation
 
-Scan product → identify via Cloudinary → fetch live prices → Gemini researches sustainability → Google Maps calculates distance/gas cost → return ranked alternatives with 4 sort modes.
+- **Master spec**: `hackathon-plan.md` — the full product vision and technical architecture
+- **Design docs**: `docs/design/` — one per feature, covers what and why
+- **Implementation plans**: `docs/implementation/` — one per feature, covers how (step-by-step)
 
-## Architecture
+## Project Structure
 
-### Pricing Layers (anti-hallucination)
+```
+src/
+├── app/                    # Next.js App Router pages + API routes
+│   ├── layout.tsx          # Root layout
+│   ├── page.tsx            # Home page
+│   ├── scan/               # Product scan page
+│   ├── receipt/            # Receipt scan page
+│   ├── shelf/              # Shelf scan page
+│   ├── onboarding/         # User profile setup
+│   └── api/                # Route handlers (server-side)
+│       ├── scan/route.ts       → Feature 01
+│       ├── pricing/route.ts    → Feature 02
+│       ├── score/route.ts      → Feature 03
+│       ├── externality/route.ts → Feature 06
+│       ├── receipt/route.ts    → Feature 07
+│       └── shelf/route.ts     → Feature 08
+├── components/             # React components by feature
+│   ├── ui/                 # Shared UI primitives
+│   ├── scan/               # Camera, disambiguation
+│   ├── comparison/         # Sort bar, product cards, comparison view
+│   ├── receipt/            # Receipt display, swap detail
+│   ├── shelf/              # Shelf overlay, product detail
+│   └── onboarding/         # Profile setup flow
+├── services/               # API clients + business logic
+│   ├── cloudinary/         # Image processing, OCR
+│   ├── gemini/             # Gemini API client
+│   ├── maps/               # Google Maps client
+│   ├── pricing/            # 3-layer pricing (pcExpress, groundedSearch, urlContext)
+│   ├── scoring/            # Sustainability scoring engine
+│   ├── externality/        # Externality cost calculators
+│   ├── hyperlocal/         # Context engine (vehicle, grid, water, recycling, seasonal)
+│   ├── receipt/            # Receipt OCR, fuzzy matching, batch analysis
+│   └── shelf/              # Multi-product detection, overlay rendering
+├── orchestrators/          # Pipeline coordinators (scan, pricing, scoring)
+├── config/                 # Category weights, externality pricing constants
+├── types/                  # Shared TypeScript type definitions
+├── data/                   # Static datasets (NRCan vehicles, seasonal produce, grid factors)
+└── lib/                    # Utilities (env vars, helpers)
+```
 
-Gemini NEVER guesses prices. All prices come from real sources:
+## Environment Variables
 
-- **Layer 1 — PC Express API** (`POST api.pcexpress.ca/product-facade/v3/products/search`): structured JSON with real prices for all Loblaw banners (Loblaws, No Frills, RCSS, Shoppers). Requires `X-Apikey` + `Site-Banner` headers.
-- **Layer 2 — Gemini + Google Search Grounding**: for non-Loblaw stores (Walmart, Metro, Sobeys). Gemini searches Google for indexed flyer deals from Flipp.com, RedFlagDeals, retailer pages. ~$14/1k queries.
-- **Layer 3 — Gemini URL Context**: supplementary, pass known product URLs directly. Unreliable for JS-heavy SPAs. Fallback to Layer 2.
-- Confidence indicators: `✓ Verified` (Layer 1) | `~ Web estimate` (Layer 2) | `— Unavailable`
+Copy `.env.example` to `.env.local` and fill in API keys. Required keys:
+- `GEMINI_API_KEY` — Google Gemini API
+- `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
+- `GOOGLE_MAPS_API_KEY` — Maps Platform
+- `PC_EXPRESS_API_KEY` — Loblaw pricing (optional, unofficial)
 
-### Image Processing — Cloudinary
+## Feature Map — Read These Before Working on Any Feature
 
-All image work goes through Cloudinary:
-- Product photo enhancement, OCR, barcode detection
-- Receipt scanning (OCR → line items + prices)
-- AR shelf scanner (object detection → isolate products)
-- Overlay image generation
+Every feature has a paired design doc + implementation plan. **Always read BOTH before
+starting work on a feature.** Design docs explain the what/why. Implementation plans
+explain the how/order.
 
-### Location — Google Maps Platform
+| # | Feature | Design Doc | Implementation Plan |
+|---|---------|-----------|-------------------|
+| 01 | Product Scanning & Identification | `docs/design/01-product-scanning-identification.md` | `docs/implementation/01-impl-product-scanning.md` |
+| 02 | Multi-Layer Pricing Architecture | `docs/design/02-multi-layer-pricing.md` | `docs/implementation/02-impl-multi-layer-pricing.md` |
+| 03 | Sustainability Scoring Algorithm | `docs/design/03-sustainability-scoring.md` | `docs/implementation/03-impl-sustainability-scoring.md` |
+| 04 | Four Sorting Modes | `docs/design/04-sorting-modes.md` | `docs/implementation/04-impl-sorting-modes.md` |
+| 05 | Hyperlocal Context Engine | `docs/design/05-hyperlocal-context-engine.md` | `docs/implementation/05-impl-hyperlocal-context.md` |
+| 06 | True Cost Externality Pricing | `docs/design/06-externality-pricing.md` | `docs/implementation/06-impl-externality-pricing.md` |
+| 07 | Receipt Scanning | `docs/design/07-receipt-scanning.md` | `docs/implementation/07-impl-receipt-scanning.md` |
+| 08 | AR Shelf Scanner | `docs/design/08-ar-shelf-scanner.md` | `docs/implementation/08-impl-ar-shelf-scanner.md` |
 
-- **Distance Matrix API**: driving distance to stores
-- **Places API**: nearby store discovery
-- **Geocoding API**: postal code → coordinates
-- Gas cost formula: `(km × vehicle L/100km / 100) × gas price per litre`
+## Dependency Graph — Build Order Matters
 
-### Intelligence — Gemini API
+Features depend on each other. Build in this order to avoid blocked work:
 
-Gemini handles research/reasoning only (not pricing):
-- Product identification from Cloudinary image data
-- Sustainability research (sourcing, packaging, certifications, labor)
-- Alternative discovery in same category
-- Score calculation from real pricing data + sustainability research
-- Category detection for weight adjustment
-- Gas price lookup via Google Search Grounding or NRCan baseline
+```
+PHASE 1 — Foundations (no dependencies, build in parallel)
+  ├── Feature 05: Hyperlocal Context Engine
+  └── Feature 01: Product Scanning & Identification
 
-## Cost Terminology
+PHASE 2 — Core Pipeline (depends on Phase 1)
+  ├── Feature 02: Multi-Layer Pricing      ← needs 01 (product identity)
+  ├── Feature 03: Sustainability Scoring   ← needs 01 + 05 (product + hyperlocal)
+  └── Feature 06: Externality Pricing      ← needs 01 + 05 (product + hyperlocal)
 
-Three distinct cost figures — never mix these:
-- **Out-of-Pocket** = shelf price + gas to store
-- **Externality** = monetized environmental damage (carbon, water, packaging)
+PHASE 3 — Interaction Layer (depends on Phase 2)
+  └── Feature 04: Sorting Modes            ← needs 02 + 03 + 06 (all data dimensions)
+
+PHASE 4 — Advanced Features (depends on full pipeline)
+  ├── Feature 07: Receipt Scanning         ← needs 01 + 02 + 03 + 06
+  └── Feature 08: AR Shelf Scanner         ← needs 01 + 02 + 03 + 06
+```
+
+## Routing Guide — Which Docs to Read for Common Tasks
+
+**"I'm building the camera/scanning experience"**
+→ Read: 01 design + 01 implementation
+
+**"I'm working on pricing / fetching product prices"**
+→ Read: 02 design + 02 implementation
+→ Also check: 01 (product identity feeds into pricing)
+
+**"I'm working on sustainability scores"**
+→ Read: 03 design + 03 implementation
+→ Also check: 05 (hyperlocal adjustments modify scores)
+
+**"I'm building the comparison/results view"**
+→ Read: 04 design + 04 implementation
+→ Also check: 02 (prices), 03 (scores), 06 (externalities) — all feed into sorting
+
+**"I'm working on personalization / user location"**
+→ Read: 05 design + 05 implementation
+→ This feeds into: 03 (score adjustments), 06 (externality adjustments), 02 (gas cost)
+
+**"I'm working on externality / true cost calculations"**
+→ Read: 06 design + 06 implementation
+→ Also check: 05 (hyperlocal adjustments for water/carbon/packaging)
+
+**"I'm building receipt scanning"**
+→ Read: 07 design + 07 implementation
+→ Also check: 01 (reuses identification), 02 (prices alternatives), 03 (scores items), 06 (externalities)
+
+**"I'm building AR / shelf scanning"**
+→ Read: 08 design + 08 implementation
+→ Also check: 01 (reuses identification), 02 (prices products), 03 (scores products), 06 (externalities)
+
+**"I need to understand the full data flow"**
+→ Read: `hackathon-plan.md` for the complete picture, then the relevant feature docs
+
+## Cross-Cutting Concerns
+
+### Shared Services (used by multiple features)
+
+| Service | Used By | Purpose |
+|---------|---------|---------|
+| Cloudinary SDK | 01, 07, 08 | Image processing, OCR, object detection |
+| Gemini API | 01, 02, 03, 05, 06, 07, 08 | Product ID, research, scoring, pricing |
+| Google Maps API | 02, 03, 05 | Distance, geocoding, store locations |
+| Open Food Facts API | 01, 03 | Product database, eco-scores |
+| PC Express API | 02 | Loblaw banner pricing |
+
+### Key Data Types (shared across features)
+
+- `Product` — identified product (from Feature 01), consumed by all downstream features
+- `UserProfile` — personalization context (from Feature 05), consumed by 02, 03, 04, 06
+- `PriceResult` — pricing with confidence tags (from Feature 02), consumed by 04, 07, 08
+- `SustainabilityScore` — scored product (from Feature 03), consumed by 04, 06, 07, 08
+- `ExternalityCost` — monetized hidden cost (from Feature 06), consumed by 04, 07, 08
+
+### Anti-Hallucination Rule
+
+Gemini NEVER generates prices from training data. All prices must come from:
+- Layer 1: PC Express API (verified)
+- Layer 2: Gemini with Google Search Grounding (web estimate with source URL)
+- Missing prices shown as "unavailable", never fabricated
+
+### Cost Terminology (use consistently everywhere)
+
+- **Out-of-Pocket Cost** = shelf price + gas cost to store
+- **Externality Cost** = monetized environmental damage
 - **Total Cost** = out-of-pocket + externality
 
-## Four Sorting Modes
+### Caching Strategy
 
-1. **Green**: sustainability score descending
-2. **Budget**: out-of-pocket cost ascending
-3. **Sweet Spot** (default): sustainability score / total cost descending
-4. **Planet Pick**: externality cost ascending
-
-## Sustainability Score (0-100)
-
-| Factor | Weight | Source |
-|--------|--------|--------|
-| Transport distance | 25% | Google Maps + Gemini |
-| Packaging & recyclability | 20% | Cloudinary + Gemini |
-| Certifications | 20% | Open Food Facts + Gemini |
-| Brand ethics & labor | 15% | Gemini |
-| Production method | 10% | Gemini |
-| End-of-life recyclability | 10% | Gemini + ECCC + local context |
-
-Hyperlocal multipliers applied after base score: water stress, local recycling capability, seasonal penalties, provincial grid carbon intensity.
-
-## Hyperlocal Context Engine
-
-Scores adjust per-user based on:
-- **Vehicle**: NRCan fuel consumption ratings (L/100km by make/model/year)
-- **Provincial grid**: ECCC emission intensity factors (gCO2eq/kWh by province)
-- **Water stress**: ECCC hydrometric data + WRI Aqueduct atlas
-- **Municipal recycling**: Gemini researches local programs; ReCollect platform cross-ref
-- **Season**: location + date determines what's locally in-season
-
-## Extended Features
-
-1. **Receipt Scanning**: photograph receipt → Cloudinary OCR → Gemini fuzzy-matches items → sustainability receipt with optimized swap suggestions. Progressive loading, 15-30s for full receipt.
-2. **True Cost Externality Pricing**: carbon (~$110/tonne via Canada's federal price), water, packaging, land use, eutrophication. Shows hidden $ cost alongside shelf price.
-3. **AR Shelf Scanner**: photograph shelf → Cloudinary object detection → identify all products → overlay color-coded scores. MVP: annotated photo (not live AR). ~$0.14 per shelf scan in grounded search costs. 24-hour cache.
-
-## Canadian Data Sources (All Free)
-
-| Source | Data | Access |
-|--------|------|--------|
-| Open Food Facts | Products, eco-scores, ingredients | REST API (JSON) |
-| ECCC Grid Intensity | Provincial gCO2eq/kWh | CSV, open.canada.ca |
-| HFED | Real-time generation mix by province | JSON API, energy-information.canada.ca |
-| ECCC Hydrometric | Water levels, 2,100+ stations | OGC API, api.weather.gc.ca |
-| WRI Aqueduct | Water stress indices | GIS shapefiles |
-| NRCan Fuel Ratings | Vehicle L/100km, 1995-2026 | CSV, open.canada.ca |
-| NRCan Gas Prices | Monthly ¢/litre, 11 cities | CSV via CKAN API |
-| Ontario Gas Report | Weekly, 10 markets | CSV, data.ontario.ca |
-| StatsCan WDS | Waste, energy, GHG tables | REST API (JSON/SDMX) |
-| ECCC AQHI | Real-time air quality | OGC API, api.weather.gc.ca |
-| NPRI | Facility pollutant releases | CSV/XLSX, open.canada.ca |
-| Federal Carbon Price | ~$110/tonne (2026) → $170 by 2030 | Policy reference |
-
-## Key Design Decisions
-
-- Canadian market only. Metric units (km, L/100km, ¢/litre). Postal codes. CAD.
-- Category agnostic (grocery, cleaning, personal care, clothing, electronics). Grocery uses Layer 1 + 2. Non-grocery uses Layer 2 only (Google Shopping is stronger for retail).
-- Scoring weights shift by category (labor heavier for clothing, packaging heavier for beverages).
-- All prices must have a verifiable source. Missing = "Price unavailable", never fabricated.
-- Cache: 24h for Layer 1, 48h for Layer 2, aligned with weekly flyer cycles.
-
-## Open Questions
-
-- PC Express API stability (unofficial — keys may rotate)
-- Non-Loblaw coverage gaps with Layer 2
-- Onboarding friction vs personalization depth
-- Gamification (carbon wallet) and social features — MVP or defer?
+- Product identification: 30-day TTL (product identity stable)
+- Layer 1 prices: 24-hour TTL (daily updates)
+- Layer 2 prices: 48-hour TTL (flyer cycles)
+- Sustainability scores: 24-hour TTL (hyperlocal may change)
+- Externality costs: 24-hour TTL
+- Hyperlocal data: varies by dimension (see Feature 05 implementation)
