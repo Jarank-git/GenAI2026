@@ -1,0 +1,58 @@
+{
+  "ON": {
+    "1": ["stored apples", "stored potatoes", "stored carrots", "stored beets", "stored cabbage"],
+    "2": ["stored apples", "stored potatoes", "stored carrots", "stored beets", "stored cabbage"],
+    "3": ["stored apples", "maple syrup", "stored potatoes", "stored carrots", "stored cabbage"],
+    "4": ["maple syrup", "rhubarb", "asparagus", "radishes", "spinach"],
+    "5": ["asparagus", "rhubarb", "radishes", "spinach", "lettuce", "green onions", "fiddleheads"],
+    "6": ["strawberries", "peas", "lettuce", "spinach", "radishes", "asparagus", "garlic scapes", "cherries"],
+    "7": ["strawberries", "blueberries", "raspberries", "sweet corn", "tomatoes", "cucumbers", "zucchini", "beans", "peppers", "cherries"],
+    "8": ["peaches", "plums", "sweet corn", "tomatoes", "peppers", "cucumbers", "zucchini", "beans", "blueberries", "raspberries", "eggplant"],
+    "9": ["apples", "pears", "grapes", "tomatoes", "peppers", "squash", "pumpkins", "sweet corn", "broccoli", "cauliflower"],
+    "10": ["apples", "pears", "squash", "pumpkins", "potatoes", "carrots", "beets", "turnips", "cabbage", "brussels sprouts"],
+    "11": ["apples", "squash", "potatoes", "carrots", "beets", "turnips", "cabbage", "parsnips"],
+    "12": ["stored apples", "stored potatoes", "stored carrots", "stored squash", "stored beets", "stored cabbage"]
+  },
+  "BC": {
+    "1": ["stored apples", "stored potatoes", "stored carrots", "kale", "stored squash"],
+    "2": ["stored apples", "stored potatoes", "stored carrots", "kale", "stored squash"],
+    "3": ["stored apples", "kale", "stored potatoes", "stored carrots", "early lettuce"],
+    "4": ["asparagus", "rhubarb", "lettuce", "spinach", "radishes", "green onions"],
+    "5": ["asparagus", "strawberries", "lettuce", "spinach", "peas", "radishes", "rhubarb", "green onions"],
+    "6": ["strawberries", "cherries", "peas", "lettuce", "spinach", "radishes", "beans", "new potatoes"],
+    "7": ["cherries", "blueberries", "raspberries", "blackberries", "apricots", "peaches", "tomatoes", "sweet corn", "cucumbers", "zucchini", "beans"],
+    "8": ["peaches", "plums", "blueberries", "blackberries", "tomatoes", "sweet corn", "peppers", "cucumbers", "zucchini", "beans", "eggplant"],
+    "9": ["apples", "pears", "grapes", "tomatoes", "peppers", "squash", "sweet corn", "broccoli", "cauliflower"],
+    "10": ["apples", "pears", "squash", "pumpkins", "potatoes", "carrots", "beets", "kale", "cabbage"],
+    "11": ["apples", "kale", "squash", "potatoes", "carrots", "beets", "cabbage", "brussels sprouts"],
+    "12": ["stored apples", "kale", "stored potatoes", "stored carrots", "stored squash"]
+  },
+  "AB": {
+    "1": ["stored potatoes", "stored carrots", "stored beets", "stored cabbage"],
+    "2": ["stored potatoes", "stored carrots", "stored beets", "stored cabbage"],
+    "3": ["stored potatoes", "stored carrots", "stored beets", "stored cabbage"],
+    "4": ["stored potatoes", "stored carrots", "rhubarb"],
+    "5": ["asparagus", "rhubarb", "radishes", "lettuce", "spinach"],
+    "6": ["strawberries", "peas", "lettuce", "spinach", "radishes", "green onions"],
+    "7": ["strawberries", "raspberries", "saskatoon berries", "peas", "beans", "lettuce", "new potatoes", "sweet corn"],
+    "8": ["sweet corn", "tomatoes", "cucumbers", "zucchini", "beans", "peppers", "raspberries", "saskatoon berries"],
+    "9": ["apples", "tomatoes", "peppers", "squash", "potatoes", "carrots", "beets", "sweet corn"],
+    "10": ["apples", "squash", "pumpkins", "potatoes", "carrots", "beets", "turnips", "cabbage"],
+    "11": ["stored apples", "squash", "potatoes", "carrots", "beets", "cabbage"],
+    "12": ["stored potatoes", "stored carrots", "stored beets", "stored squash", "stored cabbage"]
+  },
+  "QC": {
+    "1": ["stored apples", "stored potatoes", "stored carrots", "stored beets", "stored cabbage"],
+    "2": ["stored apples", "stored potatoes", "stored carrots", "stored beets", "stored cabbage"],
+    "3": ["stored apples", "maple syrup", "stored potatoes", "stored carrots"],
+    "4": ["maple syrup", "fiddleheads", "rhubarb", "radishes"],
+    "5": ["asparagus", "rhubarb", "radishes", "lettuce", "spinach", "fiddleheads", "green onions"],
+    "6": ["strawberries", "peas", "lettuce", "spinach", "radishes", "asparagus", "green onions"],
+    "7": ["strawberries", "blueberries", "raspberries", "sweet corn", "tomatoes", "cucumbers", "zucchini", "beans"],
+    "8": ["sweet corn", "tomatoes", "peppers", "cucumbers", "zucchini", "beans", "blueberries", "peaches"],
+    "9": ["apples", "pears", "plums", "tomatoes", "peppers", "squash", "sweet corn", "broccoli", "cauliflower"],
+    "10": ["apples", "pears", "squash", "pumpkins", "potatoes", "carrots", "beets", "turnips", "cabbage"],
+    "11": ["apples", "squash", "potatoes", "carrots", "beets", "cabbage", "parsnips"],
+    "12": ["stored apples", "stored potatoes", "stored carrots", "stored squash", "stored cabbage"]
+  }
+}
