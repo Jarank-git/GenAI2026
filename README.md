@@ -24,8 +24,6 @@ Once a product is scanned, EcoLens finds greener or cheaper alternatives in the 
 ### Upload a Receipt
 Take a photo of any Loblaws, No Frills, or Real Canadian Superstore receipt and EcoLens analyses your entire basket. It flags your highest-impact items and suggests swaps that are better for your wallet and the environment.
 
-### Shelf Scanner
-Open the shelf scanner and point it at a grocery aisle. EcoLens overlays sustainability scores and prices across every product in view, so you can make a smarter choice before you even pick something up.
 
 ---
 
