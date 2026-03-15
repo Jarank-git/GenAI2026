@@ -177,9 +177,12 @@ export default function ProductResult({ product, onScanAnother }: ProductResultP
   const [mapStore, setMapStore] = useState<PriceResult | null>(null);
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
 
+  // Default to Toronto if no profile saved (matches server-side default)
+  const DEFAULT_COORDS = { lat: 43.6426, lng: -79.3871 };
+
   useEffect(() => {
     const profile = loadProfile();
-    if (profile?.coordinates) setUserCoords(profile.coordinates);
+    setUserCoords(profile?.coordinates ?? DEFAULT_COORDS);
     const body = JSON.stringify({ product, userProfile: profile ?? undefined });
     const h = { "Content-Type": "application/json" };
 
