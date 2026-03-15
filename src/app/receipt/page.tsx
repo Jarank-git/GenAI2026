@@ -56,29 +56,30 @@ export default function ReceiptPage() {
   const isLoading = state === "uploading" || state === "parsing" || state === "analyzing";
 
   return (
-    <div className="flex min-h-screen flex-col bg-gray-50">
-      <header className="sticky top-0 z-10 border-b border-gray-200 bg-white/80 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-3">
+    <div className="page-container">
+      <header className="page-header">
+        <div className="page-header-inner">
           <Link
             href="/"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:text-foreground"
           >
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
             </svg>
           </Link>
-          <h1 className="text-base font-semibold text-gray-900">Receipt Scanner</h1>
+          <h1 className="text-editorial text-lg text-foreground">Receipt Scanner</h1>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-md flex-1 px-4 py-6">
+      <main className="page-content">
         {state === "idle" && !result && (
-          <div className="flex flex-col gap-4">
+          <div className="animate-fade-up flex flex-col gap-5">
             <div className="text-center">
-              <h2 className="text-xl font-bold text-gray-900">
-                Scan Your Receipt
+              <p className="section-label mb-3">Receipt Analysis</p>
+              <h2 className="text-editorial text-2xl text-foreground">
+                Scan Your <em className="text-accent">Receipt</em>
               </h2>
-              <p className="mt-1 text-sm text-gray-500">
+              <p className="mt-2 text-sm font-light text-muted">
                 See the true sustainability cost of your grocery trip
               </p>
             </div>
@@ -99,14 +100,14 @@ export default function ReceiptPage() {
         )}
 
         {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-center">
-            <p className="text-sm text-red-700">{error}</p>
+          <div className="animate-scale-in rounded-xl border border-eco-red/20 bg-eco-red/5 p-4 text-center">
+            <p className="text-sm font-light text-eco-red">{error}</p>
             <button
               onClick={() => {
                 setError(null);
                 setState("idle");
               }}
-              className="mt-2 text-sm font-medium text-red-600 underline"
+              className="mt-3 text-sm font-medium text-eco-red underline underline-offset-2"
             >
               Try again
             </button>
@@ -114,7 +115,7 @@ export default function ReceiptPage() {
         )}
 
         {state === "complete" && result && (
-          <div className="flex flex-col gap-4">
+          <div className="animate-fade-up flex flex-col gap-4">
             <SustainabilityReceiptView receipt={result} />
 
             {result.optimized_basket && (
@@ -122,7 +123,7 @@ export default function ReceiptPage() {
                 {!showSwaps ? (
                   <button
                     onClick={() => setShowSwaps(true)}
-                    className="w-full rounded-xl bg-green-600 py-3 text-sm font-semibold text-white shadow-sm hover:bg-green-700"
+                    className="btn-primary w-full"
                   >
                     Show Me the Swaps
                   </button>
@@ -130,7 +131,7 @@ export default function ReceiptPage() {
                   <>
                     <button
                       onClick={() => setShowSwaps(false)}
-                      className="w-full rounded-xl border border-gray-300 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                      className="btn-secondary w-full"
                     >
                       Hide Swaps
                     </button>
@@ -150,7 +151,7 @@ export default function ReceiptPage() {
                 setShowSwaps(false);
                 setState("idle");
               }}
-              className="w-full rounded-xl border border-gray-300 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="btn-secondary w-full"
             >
               Scan Another Receipt
             </button>

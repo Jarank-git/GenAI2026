@@ -27,31 +27,41 @@ const mockExternality: Externality = {
 
 export default function DemoPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <header className="sticky top-0 z-20 bg-white border-b border-gray-200 px-4 py-3">
-        <div className="mx-auto max-w-lg flex items-center gap-3">
+    <div className="page-container">
+      <header className="page-header">
+        <div className="page-header-inner">
           <Link
             href="/"
-            className="text-sm text-gray-500 hover:text-gray-900 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:text-foreground"
           >
-            &larr; Back
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
           </Link>
-          <h1 className="text-base font-semibold text-gray-900">
+          <h1 className="text-editorial text-lg text-foreground">
             Demo: Pasta Alternatives
           </h1>
         </div>
       </header>
 
-      <main className="mx-auto max-w-lg px-4 py-6 flex flex-col gap-8">
+      <main className="page-content flex flex-col gap-8">
+        <div className="animate-fade-up text-center">
+          <p className="section-label mb-3">Interactive Demo</p>
+          <h2 className="text-editorial text-2xl text-foreground">
+            Explore <em className="text-accent">Sorting Modes</em>
+          </h2>
+          <p className="mt-2 text-sm font-light text-muted">
+            Compare products across sustainability, price, and true cost
+          </p>
+        </div>
+
         <ComparisonView
           scannedProduct={mockScannedProduct}
           alternatives={mockAlternatives}
         />
 
         <section>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-gray-500 mb-3">
-            Hidden Cost Breakdown
-          </h2>
+          <p className="section-label mb-3">Hidden Cost Breakdown</p>
           <ExternalityBreakdown
             externality={mockExternality}
             shelfPrice={mockScannedProduct.shelf_price}

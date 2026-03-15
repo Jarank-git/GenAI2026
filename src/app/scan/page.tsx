@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { Product } from "@/types/product";
 import CameraCapture from "@/components/scan/CameraCapture";
 import Disambiguation from "@/components/scan/Disambiguation";
@@ -61,20 +62,36 @@ export default function ScanPage() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center px-4 py-8">
-      <header className="mb-8 text-center">
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-zinc-100">
-          Scan a Product
-        </h1>
-        <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-          Take a photo or upload an image to identify a product
-        </p>
+    <div className="page-container">
+      <header className="page-header">
+        <div className="page-header-inner">
+          <Link
+            href="/"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-muted transition-colors hover:text-foreground"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+            </svg>
+          </Link>
+          <div>
+            <h1 className="text-editorial text-lg text-foreground">Scan a Product</h1>
+          </div>
+        </div>
       </header>
 
-      <main className="flex w-full flex-col items-center gap-6">
+      <main className="page-content flex flex-col items-center gap-6">
+        {state === "idle" && !error && (
+          <div className="animate-fade-up w-full text-center">
+            <p className="section-label mb-2">Product Identification</p>
+            <p className="text-sm font-light text-muted">
+              Take a photo or upload an image to reveal the true cost
+            </p>
+          </div>
+        )}
+
         {error && (
-          <div className="w-full max-w-sm rounded-lg border border-red-200 bg-red-50 p-3 text-center text-sm text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
-            {error}
+          <div className="animate-scale-in w-full max-w-sm rounded-xl border border-eco-red/20 bg-eco-red/5 p-4 text-center">
+            <p className="text-sm font-light text-eco-red">{error}</p>
           </div>
         )}
 

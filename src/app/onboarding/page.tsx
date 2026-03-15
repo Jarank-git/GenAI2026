@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import type { UserProfile, VehicleProfile } from "@/types/user-profile";
 import { saveProfile } from "@/lib/profile-storage";
 import PostalCodeStep from "@/components/onboarding/PostalCodeStep";
@@ -71,16 +72,21 @@ export default function OnboardingPage() {
   const stepIndex = ["postal", "vehicle", "details", "confirm"].indexOf(step);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-6">
+    <div className="page-container items-center justify-center p-6">
       <div className="w-full max-w-md">
-        <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold">EcoLens Setup</h1>
-          <div className="mt-4 flex justify-center gap-2">
+        <div className="mb-10 text-center">
+          <Link href="/" className="text-display text-sm text-muted transition-colors hover:text-foreground">
+            &larr; Back to home
+          </Link>
+          <h1 className="text-display mt-6 text-3xl sm:text-4xl">
+            <em className="text-accent">Personalize</em> Your Lens
+          </h1>
+          <div className="mt-6 flex justify-center gap-2">
             {[0, 1, 2, 3].map((i) => (
               <div
                 key={i}
-                className={`h-2 w-12 rounded-full transition-colors ${
-                  i <= stepIndex ? "bg-eco-green" : "bg-zinc-200 dark:bg-zinc-700"
+                className={`h-1 w-12 rounded-full transition-all duration-500 ${
+                  i <= stepIndex ? "bg-accent" : "bg-border"
                 }`}
               />
             ))}
@@ -97,23 +103,23 @@ export default function OnboardingPage() {
         )}
 
         {step === "details" && (
-          <div className="flex flex-col gap-6">
+          <div className="animate-fade-up flex flex-col gap-6">
             <div>
-              <h2 className="text-2xl font-bold">A few more details</h2>
-              <p className="mt-2 text-zinc-500 dark:text-zinc-400">
+              <h2 className="text-editorial text-2xl text-foreground">A few more details</h2>
+              <p className="mt-2 text-sm font-light text-muted">
                 Optional — helps us give better recommendations.
               </p>
             </div>
 
             <div className="flex flex-col gap-2">
-              <label htmlFor="household" className="text-sm font-medium">
+              <label htmlFor="household" className="text-sm font-medium text-foreground">
                 Household size
               </label>
               <select
                 id="household"
                 value={householdSize}
                 onChange={(e) => setHouseholdSize(Number(e.target.value))}
-                className="rounded-lg border border-zinc-300 bg-white px-4 py-3 dark:border-zinc-700 dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-eco-green"
+                className="rounded-xl border border-border bg-white px-4 py-3 text-sm font-light text-foreground focus:outline-none focus:ring-2 focus:ring-accent/30"
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                   <option key={n} value={n}>
@@ -124,16 +130,16 @@ export default function OnboardingPage() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <p className="text-sm font-medium">Dietary preferences</p>
+              <p className="text-sm font-medium text-foreground">Dietary preferences</p>
               <div className="flex flex-wrap gap-2">
                 {DIETARY_OPTIONS.map((option) => (
                   <button
                     key={option}
                     onClick={() => toggleDietary(option)}
-                    className={`rounded-full border px-3 py-1.5 text-sm transition-colors ${
+                    className={`rounded-full border px-4 py-2 text-xs font-light tracking-wide transition-all ${
                       dietaryRestrictions.includes(option)
-                        ? "border-eco-green bg-green-50 text-green-700 dark:bg-green-950/20 dark:text-green-400"
-                        : "border-zinc-300 hover:border-zinc-400 dark:border-zinc-700"
+                        ? "border-accent bg-accent/5 text-accent"
+                        : "border-border text-muted hover:border-accent/30"
                     }`}
                   >
                     {option}
@@ -145,13 +151,13 @@ export default function OnboardingPage() {
             <div className="flex gap-3">
               <button
                 onClick={() => setStep("vehicle")}
-                className="flex-1 rounded-lg border border-zinc-300 px-6 py-3 font-semibold transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
+                className="btn-secondary flex-1"
               >
                 Back
               </button>
               <button
                 onClick={() => setStep("confirm")}
-                className="flex-1 rounded-lg bg-eco-green px-6 py-3 font-semibold text-white transition-colors hover:bg-green-600"
+                className="btn-primary flex-1"
               >
                 Continue
               </button>
