@@ -3,7 +3,6 @@ import { processProductImage } from "@/services/cloudinary";
 import { lookupByBarcode } from "@/services/open-food-facts";
 import { identifyProduct } from "@/services/gemini";
 import { getCachedProduct, cacheProduct } from "@/services/product-cache";
-import { mockProducts } from "@/data/mock-products";
 
 export interface ScanResult {
   product: Product;
@@ -45,25 +44,11 @@ export async function runScanPipeline(imageFile: File): Promise<ScanResult> {
   const cacheKey =
     cloudinaryOutput.barcode ?? cloudinaryOutput.ocr_text.join("|");
 
-  if (identified.confidence >= 0.8) {
+  if (identified.confidence >= 0.5) {
     cacheProduct(cacheKey, identified);
     return { product: identified };
   }
 
-  // Low confidence: provide candidates for disambiguation
-  const candidates = buildCandidates(identified);
-  return { product: identified, candidates };
-}
-
-function buildCandidates(primary: Product): Product[] {
-  const candidates = mockProducts
-    .filter((p) => p.product_id !== primary.product_id)
-    .filter(
-      (p) =>
-        p.category === primary.category ||
-        p.brand.toLowerCase() === primary.brand.toLowerCase()
-    )
-    .slice(0, 4);
-
-  return [primary, ...candidates];
+  // Very low confidence: return as single candidate for disambiguation
+  return { product: identified, candidates: [identified] };
 }

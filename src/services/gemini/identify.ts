@@ -87,7 +87,9 @@ async function identifyWithGemini(
   );
 
   if (!res.ok) {
-    throw new Error(`Gemini API error: ${res.status}`);
+    const errBody = await res.text();
+    console.error("[gemini-identify] Gemini API error:", res.status, errBody.slice(0, 500));
+    throw new Error(`Gemini API error: ${res.status} - ${errBody.slice(0, 200)}`);
   }
 
   const data = await res.json();
