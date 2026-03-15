@@ -184,12 +184,6 @@ export default function Home() {
             />
             <FeatureCard
               number="05"
-              title="Shelf Scanner"
-              description="Point your camera at an entire shelf to compare products side-by-side with sustainability overlays."
-              href="/shelf"
-            />
-            <FeatureCard
-              number="06"
               title="Hyperlocal Context"
               description="Your postal code, vehicle type, and local grid intensity all factor into personalized impact calculations."
               href="/onboarding"
@@ -229,11 +223,6 @@ export default function Home() {
               subtitle="Analyze a grocery trip"
               href="/receipt"
             />
-            <ExploreCard
-              title="Scan Shelf"
-              subtitle="Compare entire shelves"
-              href="/shelf"
-            />
           </div>
         </div>
       </section>
@@ -254,7 +243,6 @@ export default function Home() {
               <Link href="/scan" className="text-sm font-light text-white/40 transition-colors hover:text-white/70">Scan</Link>
               <Link href="/demo" className="text-sm font-light text-white/40 transition-colors hover:text-white/70">Demo</Link>
               <Link href="/receipt" className="text-sm font-light text-white/40 transition-colors hover:text-white/70">Receipt</Link>
-              <Link href="/shelf" className="text-sm font-light text-white/40 transition-colors hover:text-white/70">Shelf</Link>
               <Link href="/onboarding" className="text-sm font-light text-white/40 transition-colors hover:text-white/70">Profile</Link>
             </div>
           </div>
