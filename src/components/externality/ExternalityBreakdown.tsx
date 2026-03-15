@@ -62,22 +62,30 @@ export default function ExternalityBreakdown({
   const displayShelfPrice = shelfPrice ?? 0;
   const displayGasCost = gasCost ?? 0;
 
+  const carbonPrice = new Date().getFullYear() >= 2030 ? 170 : new Date().getFullYear() <= 2024 ? 95 :
+    ({ 2025: 95, 2026: 110, 2027: 125, 2028: 140, 2029: 155 } as Record<number, number>)[new Date().getFullYear()] ?? 110;
+
   const lineItems: LineItemProps[] = [
     {
       label: "Carbon Emissions",
       icon: "\u{1F32B}\uFE0F",
       cost: breakdown.carbon.cost,
-      detail: `${breakdown.carbon.kg_co2e} kg CO\u2082e`,
+      detail: `${breakdown.carbon.kg_co2e} kg CO\u2082e full lifecycle`,
       methodology:
-        "Based on Canada\u2019s federal carbon price schedule. Covers full lifecycle emissions from production through transport.",
+        `Calculated using Canada\u2019s federal carbon pricing schedule at $${carbonPrice}/tonne CO\u2082e (${new Date().getFullYear()}). ` +
+        `Formula: ${breakdown.carbon.kg_co2e} kg \u00D7 $${(carbonPrice / 1000).toFixed(4)}/kg = $${breakdown.carbon.cost.toFixed(2)}. ` +
+        "Lifecycle emissions (production, transport, retail, disposal) are estimated by Google Gemini 2.5 Flash using grounded search data. " +
+        "Reference: Government of Canada Greenhouse Gas Pollution Pricing Act carbon price schedule.",
     },
     {
       label: "Water Usage",
       icon: "\u{1F4A7}",
       cost: breakdown.water.cost,
-      detail: `${breakdown.water.litres}L (${breakdown.water.scarcity_multiplier}x scarcity)`,
+      detail: `${breakdown.water.litres}L \u00D7 ${breakdown.water.scarcity_multiplier}x local scarcity`,
       methodology:
-        "Water cost reflects local watershed stress levels. Higher scarcity multipliers apply in water-stressed regions.",
+        `Formula: ${breakdown.water.litres}L \u00D7 $0.0001/L base cost \u00D7 ${breakdown.water.scarcity_multiplier}x scarcity multiplier = $${breakdown.water.cost.toFixed(2)}. ` +
+        `Scarcity multipliers reflect your local watershed stress level: low (1.0x), medium (1.5x), high (2.5x), or very high (4.0x). ` +
+        "Production water consumption is estimated by Google Gemini 2.5 Flash. Watershed stress data comes from provincial water resource assessments.",
     },
     {
       label: "Packaging Waste",
@@ -86,27 +94,33 @@ export default function ExternalityBreakdown({
       detail: breakdown.packaging.materials
         .map(
           (m) =>
-            `${m.grams}g ${m.material}${m.recyclable_locally ? "" : " (not recyclable here)"}`,
+            `${m.grams}g ${m.material}${m.recyclable_locally ? " \u2713" : " (landfill)"}`,
         )
         .join(", "),
       methodology:
-        "Packaging cost per gram by material type. Non-locally-recyclable materials incur a 2.5x landfill multiplier.",
+        "Each packaging material is costed per gram based on its environmental impact (e.g., PET plastic at $0.0008/g, cardboard at $0.0002/g, glass at $0.0003/g). " +
+        "Materials that are not accepted by your local municipal recycling program incur a 2.5\u00D7 landfill multiplier to reflect disposal externalities. " +
+        "Recyclability is checked against your municipality\u2019s blue-box accepted materials list.",
     },
     {
       label: "Land Use Change",
       icon: "\u{1F333}",
       cost: breakdown.land_use.cost,
-      detail: `${breakdown.land_use.m2} m\u00B2`,
+      detail: `${breakdown.land_use.m2} m\u00B2 of land attributable`,
       methodology:
-        "Reflects the cost of land-use change attributable to this product\u2019s supply chain, weighted by commodity impact.",
+        `Formula: ${breakdown.land_use.m2} m\u00B2 \u00D7 commodity-specific cost/m\u00B2 = $${breakdown.land_use.cost.toFixed(2)}. ` +
+        "Commodity rates vary: beef ($0.015/m\u00B2), palm oil ($0.020/m\u00B2), soy ($0.010/m\u00B2), coffee ($0.012/m\u00B2), cocoa ($0.014/m\u00B2). " +
+        "These rates reflect the environmental cost of habitat conversion and deforestation driven by agricultural commodity supply chains.",
     },
     {
       label: "Eutrophication",
       icon: "\u{1F30A}",
       cost: breakdown.eutrophication.cost,
-      detail: `Index: ${breakdown.eutrophication.index}/10`,
+      detail: `Runoff index: ${breakdown.eutrophication.index}/10`,
       methodology:
-        "Measures fertilizer and chemical runoff impact on waterways. Higher index means more nutrient pollution.",
+        `Formula: index ${breakdown.eutrophication.index} \u00D7 $0.02 = $${breakdown.eutrophication.cost.toFixed(2)}. ` +
+        "The eutrophication index (0\u201310) measures fertilizer and chemical runoff that causes algal blooms, oxygen depletion, and aquatic ecosystem damage. " +
+        "Estimated by Google Gemini 2.5 Flash based on the product\u2019s agricultural inputs and manufacturing processes.",
     },
   ];
 
@@ -155,7 +169,20 @@ export default function ExternalityBreakdown({
           <span className="font-bold text-[var(--eco-red)]">
             ${externality.externality_cost.toFixed(2)}
           </span>
+          {" "}through healthcare, environmental remediation, and ecosystem damage
         </p>
+      </div>
+
+      <div className="px-5 py-4 border-t border-[var(--border)]">
+        <p className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider mb-2">Data Sources & References</p>
+        <div className="space-y-1 text-[11px] text-[var(--muted)] leading-relaxed">
+          <p>&bull; <strong>Carbon Price:</strong> Government of Canada &mdash; Greenhouse Gas Pollution Pricing Act, federal carbon price schedule ($110/tonne in 2026, rising to $170 by 2030)</p>
+          <p>&bull; <strong>Lifecycle Estimates:</strong> Google Gemini 2.5 Flash API with grounded search &mdash; estimates CO&#8322;, water, and land use per product unit</p>
+          <p>&bull; <strong>Water Scarcity:</strong> Provincial watershed stress assessments &mdash; multipliers from 1.0x (low stress) to 4.0x (very high stress)</p>
+          <p>&bull; <strong>Packaging Costs:</strong> Material-specific environmental cost rates &mdash; landfill penalty (2.5x) based on your municipal recycling program</p>
+          <p>&bull; <strong>Land Use:</strong> Commodity-specific deforestation and habitat conversion cost rates based on global supply chain impact assessments</p>
+          <p>&bull; <strong>Recyclability:</strong> Municipal blue-box accepted materials lists for your postal code area</p>
+        </div>
       </div>
     </div>
   );

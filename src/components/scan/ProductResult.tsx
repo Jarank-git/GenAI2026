@@ -235,11 +235,26 @@ export default function ProductResult({ product, onScanAnother }: ProductResultP
                     <span className="text-[var(--muted)]"> Your local area adjusted the score from {scoring.base_score} to {scoring.final_score}.</span>
                   )}
                 </p>
+
+                <div className="mt-4 pt-4 border-t border-[var(--border)]">
+                  <h4 className="text-xs font-bold text-[var(--muted)] uppercase tracking-wider mb-2">What This Score Means</h4>
+                  <div className="grid grid-cols-5 gap-1.5 text-center text-[9px] font-semibold mb-3">
+                    <div className={`rounded-md py-1.5 ${scoring.final_score >= 80 ? "ring-2 ring-offset-1 ring-[var(--eco-green)]" : ""}`} style={{ backgroundColor: "var(--accent-light)", color: "var(--eco-green)" }}>80-100 Excellent</div>
+                    <div className={`rounded-md py-1.5 ${scoring.final_score >= 60 && scoring.final_score < 80 ? "ring-2 ring-offset-1 ring-[var(--eco-green)]" : ""}`} style={{ backgroundColor: "var(--accent-light)", color: "var(--eco-green)" }}>60-79 Good</div>
+                    <div className={`rounded-md py-1.5 ${scoring.final_score >= 40 && scoring.final_score < 60 ? "ring-2 ring-offset-1 ring-[var(--eco-yellow)]" : ""}`} style={{ backgroundColor: "#FEF9E7", color: "var(--eco-yellow)" }}>40-59 Average</div>
+                    <div className={`rounded-md py-1.5 ${scoring.final_score >= 20 && scoring.final_score < 40 ? "ring-2 ring-offset-1 ring-[var(--eco-orange)]" : ""}`} style={{ backgroundColor: "#FDF0E6", color: "var(--eco-orange)" }}>20-39 Poor</div>
+                    <div className={`rounded-md py-1.5 ${scoring.final_score < 20 ? "ring-2 ring-offset-1 ring-[var(--eco-red)]" : ""}`} style={{ backgroundColor: "#FDECEB", color: "var(--eco-red)" }}>0-19 V. Poor</div>
+                  </div>
+                  <p className="text-xs text-[var(--muted)] leading-relaxed">
+                    The score is a weighted average of 6 sustainability factors, with weights tailored to the product category (<strong>{categoryLabels[product.category]}</strong>). It is then adjusted based on your local environmental conditions.
+                  </p>
+                </div>
               </div>
 
               <div className="eco-card overflow-hidden">
                 <div className="px-5 pt-5 pb-3">
                   <h3 className="section-label">6 Sustainability Factors</h3>
+                  <p className="text-xs text-[var(--muted)] mt-1">Each factor is scored 0-100 and weighted by product category. Tap any factor for details.</p>
                 </div>
                 <div className="divide-y divide-[var(--border)]">
                   {FACTORS.map(({ key, label, icon, tiers }) => {
@@ -273,6 +288,9 @@ export default function ProductResult({ product, onScanAnother }: ProductResultP
               {scoring.adjustments.length > 0 && (
                 <div className="eco-card p-5" style={{ borderColor: "var(--eco-yellow)", backgroundColor: "#FEF9E7" }}>
                   <h4 className="section-label mb-3" style={{ color: "var(--eco-orange)" }}>Location-Based Adjustments</h4>
+                  <p className="text-xs text-[var(--muted)] mb-3 leading-relaxed">
+                    Your base score of {scoring.base_score} was adjusted using real-time data about your local environment &mdash; power grid carbon intensity, water stress levels, municipal recycling programs, and seasonal produce availability.
+                  </p>
                   <div className="space-y-2.5">
                     {scoring.adjustments.map((a, i) => (
                       <div key={i} className="flex items-start gap-2.5">
@@ -288,6 +306,41 @@ export default function ProductResult({ product, onScanAnother }: ProductResultP
                   </div>
                 </div>
               )}
+
+              {/* ─── Methodology & Data Sources ─── */}
+              <div className="eco-card p-5">
+                <h4 className="section-label mb-3">How This Score Is Calculated</h4>
+                <div className="space-y-3 text-xs text-[var(--muted)] leading-relaxed">
+                  <div className="flex gap-2.5">
+                    <span className="text-base mt-0.5 shrink-0">1.</span>
+                    <p><strong className="text-[var(--foreground)]">AI Research</strong> &mdash; Google Gemini 2.5 Flash analyzes the product&apos;s supply chain, certifications, brand practices, and manufacturing processes to generate initial factor scores.</p>
+                  </div>
+                  <div className="flex gap-2.5">
+                    <span className="text-base mt-0.5 shrink-0">2.</span>
+                    <p><strong className="text-[var(--foreground)]">Open Food Facts Calibration</strong> &mdash; Where available, scores are calibrated against the Open Food Facts database (Eco-Score grade, NOVA food processing group, and verified certifications).</p>
+                  </div>
+                  <div className="flex gap-2.5">
+                    <span className="text-base mt-0.5 shrink-0">3.</span>
+                    <p><strong className="text-[var(--foreground)]">Category Weighting</strong> &mdash; The 6 factors are combined using weights specific to <strong>{categoryLabels[product.category]}</strong> products. For example, transport matters more for food while recyclability matters more for electronics.</p>
+                  </div>
+                  <div className="flex gap-2.5">
+                    <span className="text-base mt-0.5 shrink-0">4.</span>
+                    <p><strong className="text-[var(--foreground)]">Hyperlocal Adjustment</strong> &mdash; The base score is adjusted using your postal code to reflect local conditions: provincial electricity grid carbon intensity, regional water stress, municipal recycling programs, and seasonal produce availability.</p>
+                  </div>
+                </div>
+
+                <div className="mt-4 pt-4 border-t border-[var(--border)]">
+                  <h4 className="text-[10px] font-bold text-[var(--muted)] uppercase tracking-wider mb-2">Data Sources & References</h4>
+                  <div className="space-y-1.5 text-[11px] text-[var(--muted)]">
+                    <p>&bull; <strong>Product Research:</strong> Google Gemini 2.5 Flash API (generative AI with grounded search)</p>
+                    <p>&bull; <strong>Product Database:</strong> Open Food Facts (open-source, community-maintained food database)</p>
+                    <p>&bull; <strong>Grid Carbon Intensity:</strong> Canada Energy Regulator provincial generation data (gCO&#8322;/kWh by province)</p>
+                    <p>&bull; <strong>Water Stress:</strong> Provincial watershed stress assessments (low / medium / high / very high)</p>
+                    <p>&bull; <strong>Recycling Programs:</strong> Municipal blue-box accepted materials lists</p>
+                    <p>&bull; <strong>Seasonal Produce:</strong> Canadian Food Inspection Agency growing season data</p>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
