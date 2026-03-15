@@ -48,5 +48,7 @@ export async function fetchAllPrices(
     prices: withGasCosts,
     cached: false,
     fetched_at: new Date().toISOString(),
+    gas_price_per_litre: gasData.price_per_litre,
+    user_province: userProfile.province,
   };
 }

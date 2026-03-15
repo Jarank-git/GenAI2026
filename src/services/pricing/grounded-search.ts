@@ -22,6 +22,15 @@ const STORE_DISPLAY_NAMES: Record<string, string> = {
   "save-on-foods": "Save-On-Foods",
 };
 
+const STORE_SEARCH_URLS: Record<string, (q: string) => string> = {
+  walmart: (q) => `https://www.walmart.ca/search?q=${encodeURIComponent(q)}`,
+  metro: (q) => `https://www.metro.ca/en/search?filter=${encodeURIComponent(q)}`,
+  sobeys: (q) => `https://www.sobeys.com/en/search/?search_query=${encodeURIComponent(q)}`,
+  freshco: (q) => `https://www.freshco.com/search/?search-bar=${encodeURIComponent(q)}`,
+  "food basics": (q) => `https://www.foodbasics.ca/search?filter=${encodeURIComponent(q)}`,
+  "save-on-foods": (q) => `https://www.saveonfoods.com/sm/pickup/rsid/987/results?q=${encodeURIComponent(q)}`,
+};
+
 interface FlippItem {
   name?: string;
   price?: number;
@@ -72,13 +81,15 @@ export async function queryFlippPrice(
       ? item.merchant
       : STORE_DISPLAY_NAMES[storeName] ?? storeName;
 
+    const searchUrl = STORE_SEARCH_URLS[storeName]?.(productName) ?? null;
+
     return {
       store_name: displayName,
       banner,
       price,
       unit_price: null,
       confidence: "web_estimate",
-      source_url: null,
+      source_url: searchUrl,
       distance_km: null,
       gas_cost: 0,
       out_of_pocket: price,
@@ -177,7 +188,7 @@ export async function queryNonLoblawStores(
         price,
         unit_price: null,
         confidence: "web_estimate",
-        source_url: null,
+        source_url: STORE_SEARCH_URLS[storeName]?.(productName) ?? null,
         distance_km: null,
         gas_cost: 0,
         out_of_pocket: price,
