@@ -1,6 +1,6 @@
 # EcoLens — Implementation Status
 
-> Last updated: 2026-03-14
+> Last updated: 2026-03-15
 >
 > **CURRENT PHASE: REAL API INTEGRATION**
 > Scaffolding is complete. All services, components, orchestrators, types, and mock data are built.
@@ -80,16 +80,13 @@
 
 ## Known Bugs
 
-### 1. ProductResult Race Condition (CRITICAL)
-- **File**: `src/components/scan/ProductResult.tsx` (~line 78-115)
-- **Problem**: Pricing, scoring, and externality API calls fire in parallel. Externality call passes `pricing?.prices?.[0]?.price` as `shelfPrice`, but `pricing` state is still `null` when the fetch starts.
-- **Impact**: Externality `total_cost` calculation always missing shelf price component.
-- **Fix**: Chain externality fetch after pricing resolves, or use a separate useEffect.
+### ~~1. ProductResult Race Condition~~ — FIXED
+- **File**: `src/components/scan/ProductResult.tsx`
+- **Fix applied**: Externality fetch is now chained after pricing fetch resolves, so `shelfPrice` is passed correctly from the pricing response data.
 
-### 2. Pricing Pipeline Cache TTL
+### ~~2. Pricing Pipeline Cache TTL~~ — NOT A BUG
 - **File**: `src/orchestrators/pricing-pipeline.ts:42`
-- **Problem**: `cachePrices(product.product_id, withGasCosts, 1)` — the `1` looks like a TTL value but the cache function signature needs verification.
-- **Impact**: Prices may be cached for wrong duration.
+- **Verified**: `cachePrices(product.product_id, withGasCosts, 1)` — the `1` is the **layer number** (Layer 1 = 24h TTL, Layer 2 = 48h TTL), not a TTL value. The cache implementation in `services/pricing/cache.ts` correctly maps layer → TTL.
 
 ### 3. Shelf Page Not Wired to API
 - **File**: `src/app/shelf/page.tsx`

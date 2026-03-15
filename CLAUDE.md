@@ -208,7 +208,7 @@ Gemini NEVER generates prices from training data. All prices must come from:
 - Externality costs: 24-hour TTL
 - Hyperlocal data: varies by dimension (see Feature 05 implementation)
 
-## Implementation Status (as of 2026-03-14)
+## Implementation Status (as of 2026-03-15)
 
 > See `docs/STATUS.md` for full details on every service, known bugs, and remaining work.
 
@@ -225,8 +225,8 @@ Gemini NEVER generates prices from training data. All prices must come from:
 
 ### Known Bugs (do not fix without testing first)
 
-1. **ProductResult race condition** — `src/components/scan/ProductResult.tsx`: externality fetch runs in parallel with pricing, so `shelfPrice` is always `undefined`.
-2. **Pricing pipeline TTL** — `src/orchestrators/pricing-pipeline.ts:42`: `cachePrices(..., 1)` passes `1` as TTL — likely should be `24`.
+1. ~~**ProductResult race condition**~~ — **FIXED**. Externality fetch now chains after pricing resolves.
+2. ~~**Pricing pipeline TTL**~~ — **NOT A BUG**. `cachePrices(..., 1)` passes layer number (1 = 24h TTL), not TTL value.
 3. **Shelf page not wired** — `src/app/shelf/page.tsx` uses mock data, never calls `/api/shelf`.
 4. **Receipt services mock-locked** — `USE_MOCK = true` hardcoded in 4 receipt service files with no env var toggle.
 5. **url-context.ts no fallback** — Returns `null` without API key; no mock data path.

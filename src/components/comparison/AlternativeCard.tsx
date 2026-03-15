@@ -29,7 +29,7 @@ function Stars({ count }: { count: number }) {
     <span className="text-yellow-500 tracking-wide">
       {Array.from({ length: 5 }, (_, i) => (
         <span key={i} className={i < count ? "opacity-100" : "opacity-25"}>
-          \u2605
+          {"\u2605"}
         </span>
       ))}
     </span>

@@ -95,23 +95,29 @@ export default function ProductResult({
         if (data.error) throw new Error(data.error);
         setPricing(data);
         setPricingState("loaded");
+        return data;
       })
-      .catch(() => setPricingState("error"));
-
-    const bestPrice = pricing?.prices?.[0]?.price;
-    const extBody = JSON.stringify({
-      product,
-      userProfile: profile ?? undefined,
-      shelfPrice: bestPrice,
-    });
-    fetch("/api/externality", { method: "POST", headers, body: extBody })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.error) throw new Error(data.error);
-        setExternality(data);
-        setExternalityState("loaded");
+      .then((pricingData) => {
+        // Chain externality fetch after pricing so we have the shelf price
+        const bestPrice = pricingData.prices?.[0]?.price;
+        const extBody = JSON.stringify({
+          product,
+          userProfile: profile ?? undefined,
+          shelfPrice: bestPrice,
+        });
+        return fetch("/api/externality", { method: "POST", headers, body: extBody })
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.error) throw new Error(data.error);
+            setExternality(data);
+            setExternalityState("loaded");
+          })
+          .catch(() => setExternalityState("error"));
       })
-      .catch(() => setExternalityState("error"));
+      .catch(() => {
+        setPricingState("error");
+        setExternalityState("error");
+      });
   }, [product]);
 
   const isLoading =
