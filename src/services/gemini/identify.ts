@@ -21,16 +21,26 @@ async function identifyWithGemini(
   // Build multimodal parts: image first, then text prompt
   const parts: Record<string, unknown>[] = [];
 
-  // Use raw image (from failed Cloudinary upload) or fetch from Cloudinary URL
+  // Prefer raw image (already in memory) over fetching from Cloudinary URL
   const imageData =
     rawImageBase64 ?? (await fetchImageAsBase64(input.image_url));
+
   if (imageData) {
+    console.log("[gemini-identify] Sending image to Gemini:", {
+      mimeType: imageData.mimeType,
+      dataLength: imageData.data.length,
+      source: rawImageBase64 ? "raw-upload" : "cloudinary-fetch",
+    });
     parts.push({
       inlineData: {
         mimeType: imageData.mimeType,
         data: imageData.data,
       },
     });
+  } else {
+    console.warn(
+      "[gemini-identify] WARNING: No image available for Gemini — identification will be unreliable"
+    );
   }
 
   parts.push({ text: prompt });
@@ -82,9 +92,19 @@ async function identifyWithGemini(
 
   const data = await res.json();
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error("Empty Gemini response");
+  if (!text) {
+    console.error("[gemini-identify] Empty Gemini response:", JSON.stringify(data).slice(0, 500));
+    throw new Error("Empty Gemini response");
+  }
 
   const parsed = JSON.parse(text);
+
+  console.log("[gemini-identify] Gemini identified:", {
+    product_name: parsed.product_name,
+    brand: parsed.brand,
+    category: parsed.category,
+    confidence: parsed.confidence,
+  });
 
   return {
     product_id: `gemini-${Date.now()}`,

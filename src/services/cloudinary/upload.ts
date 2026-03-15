@@ -18,7 +18,8 @@ export async function uploadProductImage(
     const timestamp = Math.floor(Date.now() / 1000).toString();
 
     // Generate signed upload signature (SHA-1 of sorted params + secret)
-    const paramsToSign = `timestamp=${timestamp}`;
+    // Params must be sorted alphabetically for signing
+    const paramsToSign = `ocr=adv_ocr&timestamp=${timestamp}`;
     const signature = crypto
       .createHash("sha1")
       .update(paramsToSign + apiSecret)
@@ -29,6 +30,7 @@ export async function uploadProductImage(
     formData.append("timestamp", timestamp);
     formData.append("api_key", apiKey);
     formData.append("signature", signature);
+    formData.append("ocr", "adv_ocr");
 
     const res = await fetch(
       `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,

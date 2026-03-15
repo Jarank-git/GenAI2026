@@ -10,6 +10,13 @@ export interface ProcessedImage {
 export async function processProductImage(
   imageFile: File
 ): Promise<ProcessedImage> {
+  // Always preserve raw image bytes for Gemini — avoids a round-trip fetch
+  // that can fail silently and leave Gemini with no image to analyze
+  const arrayBuffer = await imageFile.arrayBuffer();
+  const base64 = Buffer.from(arrayBuffer).toString("base64");
+  const mimeType = imageFile.type || "image/jpeg";
+  const rawImageBase64 = { data: base64, mimeType };
+
   const { url, ocr_text } = await uploadProductImage(imageFile);
 
   const isRealUpload = url.includes("res.cloudinary.com");
@@ -17,6 +24,13 @@ export async function processProductImage(
   if (isRealUpload) {
     // Try to extract a barcode-like string from OCR text (EAN-13, UPC-A)
     const barcode = extractBarcodeFromOcr(ocr_text);
+
+    console.log("[scan-pipeline] Cloudinary upload succeeded:", {
+      url,
+      ocrTextCount: ocr_text.length,
+      barcode,
+      brand: ocr_text.length > 0 ? ocr_text[0] : null,
+    });
 
     return {
       cloudinaryOutput: {
@@ -26,13 +40,11 @@ export async function processProductImage(
         brand_detected: ocr_text.length > 0 ? ocr_text[0] : null,
         confidence: ocr_text.length > 0 ? 0.85 : 0.5,
       },
+      rawImageBase64,
     };
   }
 
-  // Upload failed — convert raw image to base64 so Gemini can see it
-  const arrayBuffer = await imageFile.arrayBuffer();
-  const base64 = Buffer.from(arrayBuffer).toString("base64");
-  const mimeType = imageFile.type || "image/jpeg";
+  console.log("[scan-pipeline] Cloudinary upload failed, using raw image fallback");
 
   return {
     cloudinaryOutput: {
@@ -42,7 +54,7 @@ export async function processProductImage(
       brand_detected: null,
       confidence: 0,
     },
-    rawImageBase64: { data: base64, mimeType },
+    rawImageBase64,
   };
 }
 
