@@ -3,13 +3,22 @@ import { findMockPriceByName } from "@/data/mock-prices";
 
 const LOBLAW_BANNERS = ["loblaw", "nofrills", "superstore"] as const;
 
-const PC_EXPRESS_BASE_URL =
-  "https://api.pcexpress.ca/product-facade/v3/products/search";
+const PC_EXPRESS_BFF_URL =
+  "https://api.pcexpress.ca/pcx-bff/api/v1/products/search";
+
+// Default store ID (Toronto Loblaws). In production, resolve from user's postal code.
+const DEFAULT_STORE_ID = "1032";
 
 const BANNER_DISPLAY_NAMES: Record<string, string> = {
   loblaw: "Loblaws",
   nofrills: "No Frills",
   superstore: "Real Canadian Superstore",
+};
+
+const BANNER_ORIGINS: Record<string, string> = {
+  loblaw: "https://www.loblaws.ca",
+  nofrills: "https://www.nofrills.ca",
+  superstore: "https://www.realcanadiansuperstore.ca",
 };
 
 function isMockMode(): boolean {
@@ -57,18 +66,25 @@ async function queryPCExpressReal(
   const apiKey = process.env.PC_EXPRESS_API_KEY;
   if (!apiKey) return null;
 
+  const origin = BANNER_ORIGINS[banner] ?? "https://www.loblaws.ca";
+
   try {
-    const response = await fetch(PC_EXPRESS_BASE_URL, {
+    const response = await fetch(PC_EXPRESS_BFF_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "x-apikey": apiKey,
         "site-banner": banner,
+        basesiteid: banner,
         "business-user-agent": "PCXWEB",
         "x-application-type": "web",
         "x-channel": "web",
         "x-loblaw-tenant-id": "ONLINE_GROCERIES",
         Accept: "application/json, text/plain, */*",
+        Origin: origin,
+        Referer: `${origin}/`,
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
       },
       body: JSON.stringify({
         term: productName,
@@ -76,6 +92,7 @@ async function queryPCExpressReal(
         banner,
         lang: "en",
         pickupType: "STORE",
+        storeId: DEFAULT_STORE_ID,
         offerType: "ALL",
       }),
     });
@@ -83,21 +100,21 @@ async function queryPCExpressReal(
     if (!response.ok) return null;
 
     const data = await response.json();
-    const results = data?.results ?? data?.products ?? [];
-    const product = results[0];
-    if (!product) return null;
+    if (data.errors) return null;
 
-    // Handle various response price structures
-    const price =
-      product.prices?.price?.value ??
-      product.prices?.price ??
-      product.price ??
-      0;
+    const results = data?.results ?? [];
+    if (results.length === 0) return null;
+
+    // Find best match by product name similarity
+    const best = findBestPCExpressMatch(productName, results);
+    if (!best) return null;
+
+    const rawPrice = best.prices?.price;
+    const price: number =
+      (typeof rawPrice === "object" ? rawPrice?.value : rawPrice) ?? 0;
 
     const unitPrice =
-      product.prices?.comparisonPrices?.[0]?.value ??
-      product.unitPrice ??
-      null;
+      best.prices?.comparisonPrices?.[0]?.value ?? null;
 
     if (price <= 0) return null;
 
@@ -107,7 +124,7 @@ async function queryPCExpressReal(
       price,
       unit_price: unitPrice,
       confidence: "verified",
-      source_url: null,
+      source_url: best.link ? `${origin}${best.link}` : null,
       distance_km: null,
       gas_cost: 0,
       out_of_pocket: price,
@@ -115,6 +132,48 @@ async function queryPCExpressReal(
   } catch {
     return null;
   }
+}
+
+interface PCExpressProduct {
+  name?: string;
+  brand?: string;
+  link?: string;
+  packageSize?: string;
+  prices?: {
+    price?: { value?: number };
+    comparisonPrices?: Array<{ value?: number }>;
+  };
+}
+
+function findBestPCExpressMatch(
+  productName: string,
+  results: PCExpressProduct[]
+): PCExpressProduct | null {
+  if (results.length === 0) return null;
+  if (results.length === 1) return results[0];
+
+  const queryWords = productName.toLowerCase().split(/\s+/);
+
+  let bestItem = results[0];
+  let bestScore = -1;
+
+  for (const item of results) {
+    const itemName = (item.name ?? "").toLowerCase();
+    let score = 0;
+
+    for (const word of queryWords) {
+      if (word.length >= 3 && itemName.includes(word)) {
+        score += word.length;
+      }
+    }
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestItem = item;
+    }
+  }
+
+  return bestItem;
 }
 
 export async function queryAllBanners(

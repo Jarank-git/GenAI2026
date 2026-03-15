@@ -219,7 +219,7 @@ Gemini NEVER generates prices from training data. All prices must come from:
 | 03 | Sustainability Scoring | **Done** | Gemini research + OFF enrichment + hyperlocal adjustments. |
 | 04 | Sorting Modes | **Done** | All 4 modes implemented. Only used in demo page — not yet reachable from scan flow. |
 | 05 | Hyperlocal Context | **Done** | All 7 dimensions implemented. Recycling/gas use mock fallbacks. |
-| 06 | Externality Pricing | **Done** | All 5 cost calculators. Lifecycle research uses mock data (Gemini TODO). |
+| 06 | Externality Pricing | **Done** | All 5 cost calculators. Lifecycle research now uses Gemini 2.5 Flash with mock fallback. |
 | 07 | Receipt Scanning | **Partial** | UI + API route done. All receipt services hardcode `USE_MOCK = true`. |
 | 08 | AR Shelf Scanner | **Partial** | UI + API route exist. Page uses mock data only — never calls API. `batch-identify.ts` is a stub. |
 
@@ -230,6 +230,10 @@ Gemini NEVER generates prices from training data. All prices must come from:
 3. ~~**Shelf page not wired**~~ — **FIXED**. Shelf page now calls `/api/shelf` with real FormData upload.
 4. ~~**Receipt services mock-locked**~~ — **FIXED**. All 4 receipt services now check env vars (`CLOUDINARY_API_KEY`, `GEMINI_API_KEY`) and use real APIs when available, with mock as fallback.
 5. **url-context.ts no fallback** — Returns `null` without API key; no mock data path.
+6. ~~**Gemini 2.0 Flash deprecated**~~ — **FIXED**. Updated all 6 Gemini service files from `gemini-2.0-flash` to `gemini-2.5-flash`.
+7. ~~**Flipp pricing empty results**~~ — **FIXED**. Flipp API returns data in `ecom_items` not `items`. Also fixed: single search instead of per-store queries (which killed non-Walmart results), and added fuzzy product name matching.
+8. ~~**Cloudinary scan crash on upload failure**~~ — **FIXED**. Upload, OCR, and barcode now fall back to mock when real API fails or image URL is not a Cloudinary URL.
+9. ~~**PC Express API access denied**~~ — **FIXED**. Migrated from deprecated `product-facade/v3` to `pcx-bff/api/v1` endpoint. New API key works. All 3 Loblaw banners (Loblaws, No Frills, Superstore) now return verified prices with product links.
 
 ### Connections Still Needed
 

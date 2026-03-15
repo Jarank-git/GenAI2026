@@ -1,7 +1,9 @@
 import { mockProducts } from "@/data/mock-products";
 
 export async function detectBarcode(imageUrl: string): Promise<string | null> {
+  const isRealCloudinaryUrl = imageUrl.includes("res.cloudinary.com");
   if (
+    isRealCloudinaryUrl &&
     process.env.CLOUDINARY_API_KEY &&
     process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
   ) {

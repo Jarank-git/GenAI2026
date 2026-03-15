@@ -4,7 +4,9 @@ import { mockCloudinaryOutputs } from "@/data/mock-products";
 export async function extractLabelText(
   imageUrl: string
 ): Promise<CloudinaryOutput> {
+  const isRealCloudinaryUrl = imageUrl.includes("res.cloudinary.com");
   if (
+    isRealCloudinaryUrl &&
     process.env.CLOUDINARY_API_KEY &&
     process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME
   ) {

@@ -59,7 +59,7 @@ ${items.map((item, i) => `${i + 1}. "${item.raw_text}" - $${item.price}`).join("
 Return a JSON array with one object per item, each having: raw_text, price, quantity, matched_product, brand, category, match_confidence.`;
 
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },

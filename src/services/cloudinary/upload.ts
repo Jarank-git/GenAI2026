@@ -16,11 +16,11 @@ export async function uploadProductImage(
     );
 
     if (!res.ok) {
-      throw new Error(`Cloudinary upload failed: ${res.status}`);
+      console.warn(`Cloudinary upload failed (${res.status}), falling back to mock`);
+    } else {
+      const data = await res.json();
+      return { url: data.secure_url, asset_id: data.asset_id };
     }
-
-    const data = await res.json();
-    return { url: data.secure_url, asset_id: data.asset_id };
   }
 
   // Mock mode
