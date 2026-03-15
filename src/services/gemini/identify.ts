@@ -2,28 +2,33 @@ import type { Product, CloudinaryOutput, ProductCategory } from "@/types/product
 import { mockProducts } from "@/data/mock-products";
 
 export async function identifyProduct(
-  input: CloudinaryOutput
+  input: CloudinaryOutput,
+  rawImageBase64?: { data: string; mimeType: string }
 ): Promise<Product> {
   if (process.env.GEMINI_API_KEY) {
-    return identifyWithGemini(input);
+    return identifyWithGemini(input, rawImageBase64);
   }
   return identifyWithMock(input);
 }
 
-async function identifyWithGemini(input: CloudinaryOutput): Promise<Product> {
+async function identifyWithGemini(
+  input: CloudinaryOutput,
+  rawImageBase64?: { data: string; mimeType: string }
+): Promise<Product> {
   const apiKey = process.env.GEMINI_API_KEY!;
   const prompt = buildPrompt(input);
 
   // Build multimodal parts: image first, then text prompt
   const parts: Record<string, unknown>[] = [];
 
-  // Fetch the product image and include it for visual identification
-  const imageBase64 = await fetchImageAsBase64(input.image_url);
-  if (imageBase64) {
+  // Use raw image (from failed Cloudinary upload) or fetch from Cloudinary URL
+  const imageData =
+    rawImageBase64 ?? (await fetchImageAsBase64(input.image_url));
+  if (imageData) {
     parts.push({
       inlineData: {
-        mimeType: imageBase64.mimeType,
-        data: imageBase64.data,
+        mimeType: imageData.mimeType,
+        data: imageData.data,
       },
     });
   }

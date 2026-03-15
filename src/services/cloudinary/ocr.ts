@@ -1,5 +1,4 @@
 import type { CloudinaryOutput } from "@/types/product";
-import { mockCloudinaryOutputs } from "@/data/mock-products";
 
 export async function extractLabelText(
   imageUrl: string
@@ -49,6 +48,13 @@ export async function extractLabelText(
     };
   }
 
-  // Mock mode: return the first mock output deterministically
-  return { ...mockCloudinaryOutputs[0], image_url: imageUrl };
+  // No real Cloudinary URL available — return empty output so the
+  // pipeline falls through to Gemini visual identification.
+  return {
+    image_url: imageUrl,
+    barcode: null,
+    ocr_text: [],
+    brand_detected: null,
+    confidence: 0,
+  };
 }

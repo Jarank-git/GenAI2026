@@ -11,7 +11,8 @@ export interface ScanResult {
 }
 
 export async function runScanPipeline(imageFile: File): Promise<ScanResult> {
-  const cloudinaryOutput = await processProductImage(imageFile);
+  const { cloudinaryOutput, rawImageBase64 } =
+    await processProductImage(imageFile);
 
   // Check cache by barcode
   if (cloudinaryOutput.barcode) {
@@ -30,8 +31,8 @@ export async function runScanPipeline(imageFile: File): Promise<ScanResult> {
     }
   }
 
-  // Fall back to Gemini identification
-  const identified = await identifyProduct(cloudinaryOutput);
+  // Fall back to Gemini identification — pass raw image if Cloudinary failed
+  const identified = await identifyProduct(cloudinaryOutput, rawImageBase64);
 
   const cacheKey =
     cloudinaryOutput.barcode ?? cloudinaryOutput.ocr_text.join("|");

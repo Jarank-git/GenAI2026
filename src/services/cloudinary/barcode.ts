@@ -1,5 +1,3 @@
-import { mockProducts } from "@/data/mock-products";
-
 export async function detectBarcode(imageUrl: string): Promise<string | null> {
   const isRealCloudinaryUrl = imageUrl.includes("res.cloudinary.com");
   if (
@@ -33,7 +31,8 @@ export async function detectBarcode(imageUrl: string): Promise<string | null> {
     return data?.data?.barcodes?.[0]?.value ?? null;
   }
 
-  // Mock mode: deterministically return the first mock product's barcode
-  // In real mode, Cloudinary would analyze the actual image
-  return mockProducts[0].barcode;
+  // No real Cloudinary URL available — return null so the pipeline
+  // falls through to Gemini visual identification instead of returning
+  // a hardcoded mock barcode.
+  return null;
 }
