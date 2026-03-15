@@ -30,10 +30,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${cormorant.variable} ${outfit.variable} antialiased`}
-      >
-        {children}
+      <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+      </head>
+      <body className={`${cormorant.variable} ${outfit.variable} antialiased`}>
+        <a href="#main-content" className="skip-link">Skip to main content</a>
+        <main id="main-content">
+          {children}
+        </main>
       </body>
     </html>
   );

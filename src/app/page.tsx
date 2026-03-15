@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 
 function getStoredCity(): string | null {
@@ -11,327 +11,312 @@ function getStoredCity(): string | null {
       const profile = JSON.parse(stored);
       return profile.city ?? null;
     }
-  } catch {
-    // ignore parse errors
-  }
+  } catch { }
   return null;
 }
+
+// Scroll-triggered reveal hook
+function useReveal(threshold = 0.12) {
+  const ref = useRef<HTMLElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.unobserve(el);
+        }
+      },
+      { threshold }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [threshold]);
+
+  return [ref, visible] as const;
+}
+
+const TICKER_ITEMS = [
+  "Carbon Emissions", "Water Consumption", "Packaging Waste", "Land Use",
+  "Grid Intensity", "Transport Cost", "Recycling Rates", "Seasonal Impact",
+  "Carbon Emissions", "Water Consumption", "Packaging Waste", "Land Use",
+  "Grid Intensity", "Transport Cost", "Recycling Rates", "Seasonal Impact",
+];
+
+const FEATURES = [
+  {
+    number: "01",
+    title: "Product Scanner",
+    description: "Snap a barcode or label. EcoLens identifies the product, scores its sustainability, and breaks down every hidden cost personalized to your province and lifestyle.",
+    href: "/scan",
+  },
+  {
+    number: "02",
+    title: "True Cost Breakdown",
+    description: "Carbon, water, packaging, and land use each priced in CAD using peer-reviewed Canadian environmental data.",
+    href: "/demo",
+  },
+  {
+    number: "03",
+    title: "Smart Comparisons",
+    description: "Sort alternatives four ways: greenest, cheapest, best value ratio, or lowest environmental damage.",
+    href: "/demo",
+  },
+  {
+    number: "04",
+    title: "Receipt Analysis",
+    description: "Upload a grocery receipt and get a full sustainability breakdown of your entire basket at once.",
+    href: "/receipt",
+  },
+  {
+    number: "05",
+    title: "Hyperlocal Context",
+    description: "Your postal code, vehicle, and city recycling programs all factor into every number you see.",
+    href: "/onboarding",
+  },
+];
 
 export default function Home() {
   const [profileCity] = useState<string | null>(getStoredCity);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Reveal refs for each section
+  const [approachRef, approachVisible] = useReveal();
+  const [stepsRef, stepsVisible] = useReveal();
+  const [featuresRef, featuresVisible] = useReveal();
+  const [ctaRef, ctaVisible] = useReveal();
+
   return (
     <div className="min-h-screen bg-background">
-      {/* ── Navigation ─────────────────────────────────── */}
-      <nav className="fixed top-0 left-0 right-0 z-50 animate-slide-down">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5 md:px-10">
-          <Link href="/" className="text-display text-2xl tracking-tight text-foreground">
+
+      {/* ── Navigation ── */}
+      <nav className="relative z-50 px-6 md:px-10">
+        <div className="mx-auto flex max-w-7xl items-center justify-between border-b border-border py-6">
+          <Link href="/" className="text-display text-xl tracking-tight text-foreground transition-opacity duration-200 hover:opacity-70">
             EcoLens
           </Link>
           <div className="hidden items-center gap-8 md:flex">
-            <a href="#about" className="text-sm font-light tracking-wide text-muted transition-colors hover:text-foreground">
-              About
-            </a>
-            <a href="#features" className="text-sm font-light tracking-wide text-muted transition-colors hover:text-foreground">
-              Features
-            </a>
-            <a href="#explore" className="text-sm font-light tracking-wide text-muted transition-colors hover:text-foreground">
-              Explore
-            </a>
-            <Link href="/scan" className="btn-primary text-xs">
-              Get Started
+            <a href="#how-it-works" className="nav-link">How It Works</a>
+            <a href="#features" className="nav-link">Features</a>
+            <Link href="/onboarding" className="nav-link">
+              {profileCity ? profileCity : "Set Location"}
             </Link>
+            <Link href="/scan" className="btn-primary">Scan a Product</Link>
           </div>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="text-sm font-light tracking-widest text-muted md:hidden"
+            className="text-[0.65rem] tracking-widest uppercase text-muted transition-colors duration-200 hover:text-foreground md:hidden"
           >
             {menuOpen ? "Close" : "Menu"}
           </button>
         </div>
-
-        {/* Mobile menu */}
         {menuOpen && (
-          <div className="animate-fade-in border-t border-border bg-background/95 px-6 py-6 backdrop-blur-xl md:hidden">
-            <div className="flex flex-col gap-4">
-              <a href="#about" onClick={() => setMenuOpen(false)} className="text-editorial text-2xl text-foreground">About</a>
+          <div className="animate-fade-in border-b border-border bg-background px-6 py-6 md:hidden">
+            <div className="flex flex-col gap-5">
+              <a href="#how-it-works" onClick={() => setMenuOpen(false)} className="text-editorial text-2xl text-foreground">How It Works</a>
               <a href="#features" onClick={() => setMenuOpen(false)} className="text-editorial text-2xl text-foreground">Features</a>
-              <a href="#explore" onClick={() => setMenuOpen(false)} className="text-editorial text-2xl text-foreground">Explore</a>
-              <div className="my-2 h-px bg-border" />
-              <Link href="/scan" className="btn-primary w-full text-center">Get Started</Link>
+              <Link href="/onboarding" onClick={() => setMenuOpen(false)} className="text-editorial text-2xl text-foreground">
+                {profileCity ?? "Set Location"}
+              </Link>
+              <div className="my-1 h-px bg-border" />
+              <Link href="/scan" className="btn-primary w-full text-center">Scan a Product</Link>
             </div>
           </div>
         )}
       </nav>
 
-      {/* ── Hero ───────────────────────────────────────── */}
-      <section className="relative flex min-h-[100vh] flex-col items-center justify-center overflow-hidden px-6">
-        {/* Atmospheric gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-accent-light/30 via-background to-background" />
-        <div className="absolute top-0 right-0 h-[60vh] w-[60vw] rounded-full bg-accent/5 blur-[120px]" />
-        <div className="absolute bottom-0 left-0 h-[40vh] w-[40vw] rounded-full bg-earth/5 blur-[100px]" />
-
-        <div className="relative z-10 mx-auto max-w-4xl text-center">
-          <p className="section-label animate-fade-up mb-6">
-            Sustainability, Reimagined
-          </p>
-          <h1 className="text-display animate-fade-up delay-1 text-5xl sm:text-6xl md:text-7xl lg:text-8xl">
-            The <em className="text-accent">True Cost</em>
-            <br />
-            of What You Buy
-          </h1>
-          <p className="animate-fade-up delay-2 mx-auto mt-8 max-w-lg text-base font-light leading-relaxed text-muted sm:text-lg">
-            Environmental, ethical, and financial impact — personalized
-            to your location and circumstances across Canada.
-          </p>
-          <div className="animate-fade-up delay-3 mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-            <Link href="/scan" className="btn-primary px-8 py-4 text-sm">
-              Scan a Product
-            </Link>
-            <a href="#about" className="btn-secondary px-8 py-4 text-sm">
-              Learn More
-            </a>
-          </div>
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 animate-fade-in delay-8">
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-[0.625rem] font-light tracking-[0.2em] uppercase text-muted/50">Scroll</span>
-            <div className="h-8 w-px bg-gradient-to-b from-muted/30 to-transparent" />
+      {/* ── Hero ── */}
+      <section className="px-6 py-20 md:px-10 md:py-32">
+        <div className="mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 items-end gap-16 md:grid-cols-[1fr_200px] md:gap-24">
+            <div>
+              <p className="section-label mb-8 animate-fade-up">Canadian Sustainability Intelligence</p>
+              <h1 className="text-display hero-headline animate-fade-up delay-1">
+                Every product<br />
+                carries a hidden<br />
+                <em className="text-accent">price tag.</em>
+              </h1>
+              <p className="mt-8 max-w-md text-base font-light leading-relaxed text-muted animate-fade-up delay-2">
+                EcoLens reveals the full cost of what you buy — carbon, water, packaging, and land use — priced in real dollars and personalized to where you live in Canada.
+              </p>
+              <div className="mt-10 flex flex-wrap gap-4 animate-fade-up delay-3">
+                <Link href="/scan" className="btn-primary">Scan a Product</Link>
+                <a href="#how-it-works" className="btn-secondary">How It Works</a>
+              </div>
+            </div>
+            <div className="hidden flex-col gap-0 pb-1 md:flex animate-fade-up delay-2">
+              <StatCallout value="~$190" label="CAD per tonne CO&#8322;" />
+              <StatCallout value="77x" label="grid emissions spread" />
+              <StatCallout value="3" label="pricing layers" />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── About ──────────────────────────────────────── */}
-      <section id="about" className="relative px-6 py-24 md:py-32">
-        <div className="mx-auto max-w-6xl">
-          <div className="grid gap-16 md:grid-cols-2 md:gap-20">
-            {/* Left column */}
+      {/* ── Ticker ── */}
+      <div className="ticker-container overflow-hidden border-y border-border bg-card py-3">
+        <div className="ticker-track flex whitespace-nowrap">
+          {TICKER_ITEMS.map((item, i) => (
+            <span key={i} className="px-6 text-[0.65rem] uppercase tracking-widest text-muted">
+              {item}<span className="mx-3 text-accent">&middot;</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Approach ── */}
+      <section
+        ref={approachRef as React.RefObject<HTMLElement>}
+        className={`border-b border-border bg-earth-light px-6 py-20 md:px-10 md:py-28 reveal ${approachVisible ? "is-visible" : ""}`}
+      >
+        <div className="mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 gap-12 md:grid-cols-[180px_1fr]">
+            <div className="pt-1">
+              <p className="section-label">Our Approach</p>
+            </div>
             <div>
-              <p className="section-label mb-4">About EcoLens</p>
-              <div className="flex flex-col gap-5 text-sm text-muted">
-                <div className="flex items-start gap-4">
-                  <span className="text-editorial text-lg text-accent">01.</span>
-                  <p className="font-light leading-relaxed">Reveals the hidden environmental price behind every grocery product on Canadian shelves</p>
+              <p className={`pull-quote text-foreground ${approachVisible ? "is-visible" : ""}`}>
+                Most sustainability apps give you a score.<br />
+                EcoLens gives you <em>the math</em> — numbers built on peer-reviewed science, adjusted to your life.
+              </p>
+              <div className="mt-12 grid grid-cols-3 gap-8 border-t border-border pt-8">
+                <div className={`reveal ${approachVisible ? "is-visible reveal-delay-1" : ""}`}>
+                  <p className="text-display tabular text-3xl text-accent">5</p>
+                  <p className="mt-1 text-xs font-light leading-snug text-muted">externality cost calculators</p>
                 </div>
-                <div className="flex items-start gap-4">
-                  <span className="text-editorial text-lg text-accent">02.</span>
-                  <p className="font-light leading-relaxed">Personalizes sustainability scores to your postal code, vehicle, and household</p>
+                <div className={`reveal ${approachVisible ? "is-visible reveal-delay-2" : ""}`}>
+                  <p className="text-display tabular text-3xl text-accent">7</p>
+                  <p className="mt-1 text-xs font-light leading-snug text-muted">hyperlocal dimensions</p>
                 </div>
-                <div className="flex items-start gap-4">
-                  <span className="text-editorial text-lg text-accent">03.</span>
-                  <p className="font-light leading-relaxed">Calculates true cost including carbon, water, packaging, and land-use externalities</p>
+                <div className={`reveal ${approachVisible ? "is-visible reveal-delay-3" : ""}`}>
+                  <p className="text-display tabular text-3xl text-accent">3</p>
+                  <p className="mt-1 text-xs font-light leading-snug text-muted">pricing layers, always sourced</p>
                 </div>
               </div>
             </div>
-
-            {/* Right column */}
-            <div className="flex flex-col justify-center">
-              <p className="text-editorial text-xl leading-relaxed text-foreground sm:text-2xl md:text-3xl">
-                By combining <em>environmental science</em> with real-time pricing data,
-                EcoLens makes it easy to see the full picture — the cost to your wallet
-                <em> and</em> the cost to the planet.
-              </p>
-              <Link href="/onboarding" className="btn-primary mt-8 w-fit">
-                {profileCity ? `Your Profile: ${profileCity}` : "Set Up Your Profile"}
-              </Link>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* ── Divider ────────────────────────────────────── */}
-      <div className="mx-auto max-w-6xl px-6">
-        <div className="h-px bg-border" />
-      </div>
-
-      {/* ── Features ───────────────────────────────────── */}
-      <section id="features" className="px-6 py-24 md:py-32">
-        <div className="mx-auto max-w-6xl">
-          <div className="mb-16 max-w-2xl">
-            <p className="section-label mb-4">Features</p>
-            <h2 className="text-display text-4xl sm:text-5xl">
-              Tools That <em className="text-accent">Illuminate</em> Impact
-            </h2>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <FeatureCard
-              number="01"
-              title="Product Scanner"
-              description="Snap a photo of any product to instantly identify it and reveal its sustainability profile with real-time AI analysis."
-              href="/scan"
-            />
-            <FeatureCard
-              number="02"
-              title="True Cost Breakdown"
-              description="See beyond the price tag — carbon emissions, water usage, packaging waste, and land use monetized into real dollar amounts."
-              href="/demo"
-            />
-            <FeatureCard
-              number="03"
-              title="Smart Comparisons"
-              description="Four sorting modes help you find the greenest, cheapest, or best value-to-sustainability ratio alternatives."
-              href="/demo"
-            />
-            <FeatureCard
-              number="04"
-              title="Receipt Analysis"
-              description="Upload a grocery receipt to analyze every item and get personalized swap recommendations for a greener basket."
-              href="/receipt"
-            />
-            <FeatureCard
-              number="05"
-              title="Hyperlocal Context"
-              description="Your postal code, vehicle type, and local grid intensity all factor into personalized impact calculations."
-              href="/onboarding"
-            />
+      {/* ── How It Works ── */}
+      <section
+        id="how-it-works"
+        ref={stepsRef as React.RefObject<HTMLElement>}
+        className={`border-b border-border bg-card px-6 py-20 md:px-10 md:py-28 reveal ${stepsVisible ? "is-visible" : ""}`}
+      >
+        <div className="mx-auto max-w-7xl">
+          <p className="section-label mb-16">How It Works</p>
+          <div className="grid grid-cols-1 gap-0 md:grid-cols-2">
+            {[
+              { n: "01", title: "Scan the product", body: "Point your camera at a barcode or label. We identify it instantly using Gemini AI and Cloudinary image processing." },
+              { n: "02", title: "We fetch real prices", body: "Three layers pull verified prices from Loblaw banners, live web sources, and retailer pages. If a price cannot be found, we say so." },
+              { n: "03", title: "We calculate the true cost", body: "Carbon, water, packaging, and land use are each converted to a dollar amount using Canadian environmental research. Your province and vehicle factor in." },
+              { n: "04", title: "You decide with full information", body: "Sort alternatives four ways. Greenest, cheapest, best value ratio, or lowest environmental damage. The choice is yours." },
+            ].map((s, i) => (
+              <div
+                key={s.n}
+                className={`border-t border-border py-10 pr-0 md:pr-16 reveal ${stepsVisible ? `is-visible reveal-delay-${i + 1}` : ""}`}
+              >
+                <span className="text-display tabular text-2xl text-accent">{s.n}</span>
+                <h3 className="text-editorial mt-3 mb-3 text-2xl text-foreground">{s.title}</h3>
+                <p className="max-w-[45ch] text-sm font-light leading-relaxed text-muted">{s.body}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── Explore / CTA ──────────────────────────────── */}
-      <section id="explore" className="relative overflow-hidden bg-surface-dark px-6 py-24 md:py-32">
-        <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-earth/5" />
-        <div className="relative z-10 mx-auto max-w-6xl">
-          <div className="mb-16 max-w-2xl">
-            <p className="section-label mb-4 text-accent-light/60">Explore</p>
-            <h2 className="text-display text-4xl text-white/90 sm:text-5xl">
-              Start Your <em className="text-accent-light">Journey</em> Today
-            </h2>
-            <p className="mt-6 max-w-md text-base font-light leading-relaxed text-white/40">
-              Every scan reveals a story. Every choice shapes a future. See what&apos;s really behind the products you buy.
-            </p>
+      {/* ── Features ── */}
+      <section
+        id="features"
+        ref={featuresRef as React.RefObject<HTMLElement>}
+        className={`border-b border-border px-6 py-20 md:px-10 md:py-28 reveal ${featuresVisible ? "is-visible" : ""}`}
+      >
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-4 flex items-end justify-between border-b border-border pb-6">
+            <p className="section-label">Features</p>
+            <Link href="/demo" className="nav-link">View Demo &rarr;</Link>
           </div>
-
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <ExploreCard
-              title="Scan Product"
-              subtitle="Identify & analyze"
-              href="/scan"
-              accent
-            />
-            <ExploreCard
-              title="View Demo"
-              subtitle="See it in action"
-              href="/demo"
-            />
-            <ExploreCard
-              title="Scan Receipt"
-              subtitle="Analyze a grocery trip"
-              href="/receipt"
-            />
-          </div>
+          {FEATURES.map((f, i) => (
+            <Link
+              key={f.number}
+              href={f.href}
+              className={`feature-row-link group grid grid-cols-[48px_1fr_24px] items-center gap-6 border-b border-border py-6 md:grid-cols-[64px_1fr_24px] reveal ${featuresVisible ? `is-visible reveal-delay-${Math.min(i + 1, 3)}` : ""}`}
+            >
+              <span className="text-[0.65rem] uppercase tracking-widest text-muted pt-0.5 transition-colors duration-200 group-hover:text-accent">{f.number}</span>
+              <div>
+                <h3 className="text-editorial text-xl text-foreground transition-colors duration-200 group-hover:text-accent">{f.title}</h3>
+                <p className="mt-1 text-sm font-light leading-relaxed text-muted max-w-[60ch]">{f.description}</p>
+              </div>
+              <svg
+                className="h-4 w-4 text-muted/40 transition-all duration-200 group-hover:translate-x-1 group-hover:text-accent"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+              </svg>
+            </Link>
+          ))}
         </div>
       </section>
 
-      {/* ── Footer ─────────────────────────────────────── */}
-      <footer className="bg-surface-dark px-6 py-16">
-        <div className="mx-auto max-w-6xl">
-          <div className="flex flex-col gap-10 md:flex-row md:items-end md:justify-between">
+      {/* ── CTA ── */}
+      <section
+        ref={ctaRef as React.RefObject<HTMLElement>}
+        className={`bg-surface-dark px-6 py-20 md:px-10 md:py-28 reveal ${ctaVisible ? "is-visible" : ""}`}
+      >
+        <div className="mx-auto max-w-7xl">
+          <div className="grid grid-cols-1 items-center gap-12 md:grid-cols-2">
             <div>
-              <p className="text-display text-3xl text-white/80">EcoLens</p>
-              <p className="mt-3 max-w-sm text-sm font-light leading-relaxed text-white/30">
-                Canadian-focused sustainability intelligence.
-                The true cost of what you buy — environmental,
-                ethical, and financial.
+              <p className="section-label-light mb-6">Get Started</p>
+              <h2 className="text-display cta-headline text-white/90">
+                See what your groceries<br />
+                <em className="text-accent-light">actually cost.</em>
+              </h2>
+            </div>
+            <div className="flex flex-col gap-5 md:items-end md:text-right">
+              <p className="max-w-sm text-sm font-light leading-relaxed text-white/50">
+                Set up your profile with your postal code and vehicle. Every score and cost you see will be grounded in your actual life.
               </p>
-            </div>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
-              <Link href="/scan" className="text-sm font-light text-white/40 transition-colors hover:text-white/70">Scan</Link>
-              <Link href="/demo" className="text-sm font-light text-white/40 transition-colors hover:text-white/70">Demo</Link>
-              <Link href="/receipt" className="text-sm font-light text-white/40 transition-colors hover:text-white/70">Receipt</Link>
-              <Link href="/onboarding" className="text-sm font-light text-white/40 transition-colors hover:text-white/70">Profile</Link>
+              <div className="flex flex-wrap gap-3 md:justify-end">
+                <Link href="/onboarding" className="btn-primary">
+                  {profileCity ? `Profile: ${profileCity}` : "Set Up Your Profile"}
+                </Link>
+                <Link href="/scan" className="btn-ghost-light">Scan Now</Link>
+              </div>
             </div>
           </div>
-          <div className="mt-10 h-px bg-white/10" />
-          <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-xs font-light text-white/20">
-              Built for Canadian sustainability
-            </p>
-            <p className="text-xs font-light text-white/20">
-              EcoLens &copy; {new Date().getFullYear()}
-            </p>
+        </div>
+      </section>
+
+      {/* ── Footer ── */}
+      <footer className="bg-surface-dark border-t border-white/10 px-6 py-10 md:px-10">
+        <div className="mx-auto max-w-7xl flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-display text-xl text-white/80">EcoLens</p>
+            <p className="mt-1 text-xs font-light text-white/30">Canadian sustainability intelligence</p>
           </div>
+          <div className="flex flex-wrap gap-6">
+            <Link href="/scan" className="text-[0.65rem] font-medium tracking-widest uppercase text-white/40 hover:text-white/70 transition-colors duration-200">Scan</Link>
+            <Link href="/receipt" className="text-[0.65rem] font-medium tracking-widest uppercase text-white/40 hover:text-white/70 transition-colors duration-200">Receipt</Link>
+            <Link href="/demo" className="text-[0.65rem] font-medium tracking-widest uppercase text-white/40 hover:text-white/70 transition-colors duration-200">Demo</Link>
+            <Link href="/onboarding" className="text-[0.65rem] font-medium tracking-widest uppercase text-white/40 hover:text-white/70 transition-colors duration-200">Profile</Link>
+          </div>
+          <p className="text-xs text-white/25">&copy; {new Date().getFullYear()} EcoLens</p>
         </div>
       </footer>
+
     </div>
   );
 }
 
-/* ── Sub-components ──────────────────────────────────── */
-
-function FeatureCard({
-  number,
-  title,
-  description,
-  href,
-}: {
-  number: string;
-  title: string;
-  description: string;
-  href: string;
-}) {
+function StatCallout({ value, label }: { value: string; label: string }) {
   return (
-    <Link href={href} className="group eco-card flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <span className="text-editorial text-sm text-accent">{number}.</span>
-        <svg
-          className="h-4 w-4 text-muted/40 transition-all group-hover:translate-x-1 group-hover:text-accent"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 19.5l15-15m0 0H8.25m11.25 0v11.25" />
-        </svg>
-      </div>
-      <h3 className="text-editorial text-xl text-foreground">{title}</h3>
-      <p className="text-sm font-light leading-relaxed text-muted">{description}</p>
-    </Link>
-  );
-}
-
-function ExploreCard({
-  title,
-  subtitle,
-  href,
-  accent,
-}: {
-  title: string;
-  subtitle: string;
-  href: string;
-  accent?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`group flex flex-col justify-between rounded-2xl border p-6 transition-all hover:-translate-y-1 ${
-        accent
-          ? "border-accent/30 bg-accent/10 hover:border-accent/50 hover:bg-accent/15"
-          : "border-white/8 bg-white/3 hover:border-white/15 hover:bg-white/5"
-      }`}
-      style={{ minHeight: "140px" }}
-    >
-      <p className={`text-xs font-light tracking-wider ${accent ? "text-accent-light/60" : "text-white/30"}`}>
-        {subtitle}
-      </p>
-      <div className="flex items-end justify-between">
-        <h3 className={`text-editorial text-xl ${accent ? "text-accent-light" : "text-white/70"}`}>
-          {title}
-        </h3>
-        <svg
-          className={`h-4 w-4 transition-transform group-hover:translate-x-1 ${accent ? "text-accent-light/40" : "text-white/20"}`}
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.5}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-        </svg>
-      </div>
-    </Link>
+    <div className="stat-callout border-t border-border pt-5 pb-5 last:pb-0">
+      <p className="text-display tabular text-2xl text-foreground">{value}</p>
+      <p className="mt-1 max-w-[14ch] text-xs font-light leading-snug text-muted">{label}</p>
+    </div>
   );
 }

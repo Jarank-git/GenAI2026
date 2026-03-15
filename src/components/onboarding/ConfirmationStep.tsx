@@ -9,19 +9,10 @@ interface ConfirmationStepProps {
 }
 
 const PROVINCE_NAMES: Record<string, string> = {
-  ON: "Ontario",
-  AB: "Alberta",
-  BC: "British Columbia",
-  QC: "Quebec",
-  MB: "Manitoba",
-  SK: "Saskatchewan",
-  NB: "New Brunswick",
-  NS: "Nova Scotia",
-  PE: "Prince Edward Island",
-  NL: "Newfoundland and Labrador",
-  NT: "Northwest Territories",
-  YT: "Yukon",
-  NU: "Nunavut",
+  ON: "Ontario", AB: "Alberta", BC: "British Columbia", QC: "Quebec",
+  MB: "Manitoba", SK: "Saskatchewan", NB: "New Brunswick", NS: "Nova Scotia",
+  PE: "Prince Edward Island", NL: "Newfoundland and Labrador",
+  NT: "Northwest Territories", YT: "Yukon", NU: "Nunavut",
 };
 
 function formatVehicle(vehicle: UserProfile["vehicle"]): string {
@@ -33,68 +24,53 @@ function formatVehicle(vehicle: UserProfile["vehicle"]): string {
 
 export default function ConfirmationStep({ profile, onConfirm, onBack }: ConfirmationStepProps) {
   return (
-    <div className="flex flex-col gap-6">
-      <div className="text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-          <svg className="h-8 w-8 text-eco-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
-        </div>
-        <h2 className="text-2xl font-bold">Your EcoLens is calibrated</h2>
-        <p className="mt-2 text-zinc-500 dark:text-zinc-400">
-          Sustainability scores will be personalized to your location and circumstances.
+    <div className="flex flex-col gap-8 animate-fade-up">
+      <div>
+        <h2 className="text-editorial text-2xl text-foreground">Your EcoLens is calibrated</h2>
+        <p className="mt-2 text-sm font-light leading-relaxed text-muted">
+          Every sustainability score and cost you see will be personalized to your location and circumstances.
         </p>
       </div>
 
-      <div className="flex flex-col gap-3 rounded-lg border border-zinc-200 p-4 dark:border-zinc-700">
-        <div className="flex justify-between">
-          <span className="text-zinc-500 dark:text-zinc-400">Location</span>
-          <span className="font-medium">
+      <div className="border-t border-border">
+        <div className="profile-row">
+          <span className="text-xs uppercase tracking-widest text-muted">Location</span>
+          <span className="text-sm font-medium text-foreground">
             {profile.city}, {PROVINCE_NAMES[profile.province] ?? profile.province}
           </span>
         </div>
-        <div className="border-t border-zinc-100 dark:border-zinc-800" />
-        <div className="flex justify-between">
-          <span className="text-zinc-500 dark:text-zinc-400">Postal Code</span>
-          <span className="font-medium">{profile.postal_code}</span>
+        <div className="profile-row">
+          <span className="text-xs uppercase tracking-widest text-muted">Postal Code</span>
+          <span className="text-sm font-medium text-foreground">{profile.postal_code}</span>
         </div>
-        <div className="border-t border-zinc-100 dark:border-zinc-800" />
-        <div className="flex justify-between">
-          <span className="text-zinc-500 dark:text-zinc-400">Transportation</span>
-          <span className="font-medium">{formatVehicle(profile.vehicle)}</span>
+        <div className="profile-row">
+          <span className="text-xs uppercase tracking-widest text-muted">Transport</span>
+          <span className="text-sm font-medium text-foreground">{formatVehicle(profile.vehicle)}</span>
         </div>
         {profile.household_size && (
-          <>
-            <div className="border-t border-zinc-100 dark:border-zinc-800" />
-            <div className="flex justify-between">
-              <span className="text-zinc-500 dark:text-zinc-400">Household Size</span>
-              <span className="font-medium">{profile.household_size}</span>
-            </div>
-          </>
+          <div className="profile-row">
+            <span className="text-xs uppercase tracking-widest text-muted">Household</span>
+            <span className="text-sm font-medium text-foreground">
+              {profile.household_size} {profile.household_size === 1 ? "person" : "people"}
+            </span>
+          </div>
         )}
         {profile.dietary_restrictions && profile.dietary_restrictions.length > 0 && (
-          <>
-            <div className="border-t border-zinc-100 dark:border-zinc-800" />
-            <div className="flex justify-between">
-              <span className="text-zinc-500 dark:text-zinc-400">Dietary</span>
-              <span className="font-medium">{profile.dietary_restrictions.join(", ")}</span>
-            </div>
-          </>
+          <div className="profile-row">
+            <span className="text-xs uppercase tracking-widest text-muted">Dietary</span>
+            <span className="text-sm font-medium text-foreground">
+              {profile.dietary_restrictions.join(", ")}
+            </span>
+          </div>
         )}
       </div>
 
       <div className="flex gap-3">
-        <button
-          onClick={onBack}
-          className="flex-1 rounded-lg border border-zinc-300 px-6 py-3 font-semibold transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:hover:bg-zinc-800"
-        >
+        <button onClick={onBack} className="btn-secondary flex-1">
           Back
         </button>
-        <button
-          onClick={onConfirm}
-          className="flex-1 rounded-lg bg-eco-green px-6 py-3 font-semibold text-white transition-colors hover:bg-green-600"
-        >
-          Start Using EcoLens
+        <button onClick={onConfirm} className="btn-primary flex-1">
+          Save and start scanning
         </button>
       </div>
     </div>

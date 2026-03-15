@@ -28,16 +28,9 @@ const POSTAL_PREFIX_MAP: Record<string, { province: string; city: string; lat: n
 const POSTAL_REGEX = /^[ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z]\s?\d[ABCEGHJ-NPRSTV-Z]\d$/i;
 
 const PROVINCE_NAMES: Record<string, string> = {
-  ON: "Ontario",
-  AB: "Alberta",
-  BC: "British Columbia",
-  QC: "Quebec",
-  MB: "Manitoba",
-  SK: "Saskatchewan",
-  NB: "New Brunswick",
-  NS: "Nova Scotia",
-  PE: "Prince Edward Island",
-  NL: "Newfoundland and Labrador",
+  ON: "Ontario", AB: "Alberta", BC: "British Columbia", QC: "Quebec",
+  MB: "Manitoba", SK: "Saskatchewan", NB: "New Brunswick", NS: "Nova Scotia",
+  PE: "Prince Edward Island", NL: "Newfoundland and Labrador",
 };
 
 export default function PostalCodeStep({ onNext }: PostalCodeStepProps) {
@@ -49,15 +42,9 @@ export default function PostalCodeStep({ onNext }: PostalCodeStepProps) {
     const upper = value.toUpperCase();
     setPostalCode(upper);
     setError("");
-
     if (upper.length >= 3) {
-      const prefix = upper.charAt(0);
-      const match = POSTAL_PREFIX_MAP[prefix];
-      if (match) {
-        setResolved(match);
-      } else {
-        setResolved(null);
-      }
+      const match = POSTAL_PREFIX_MAP[upper.charAt(0)];
+      setResolved(match ?? null);
     } else {
       setResolved(null);
     }
@@ -66,38 +53,28 @@ export default function PostalCodeStep({ onNext }: PostalCodeStepProps) {
   function handleSubmit() {
     const cleaned = postalCode.trim();
     if (!POSTAL_REGEX.test(cleaned)) {
-      setError("Please enter a valid Canadian postal code (e.g., M5V 2T6)");
+      setError("Enter a valid Canadian postal code — for example, M5V 2T6");
       return;
     }
-
-    const prefix = cleaned.charAt(0);
-    const match = POSTAL_PREFIX_MAP[prefix];
-
+    const match = POSTAL_PREFIX_MAP[cleaned.charAt(0)];
     if (!match) {
-      setError("Could not determine your location from this postal code");
+      setError("We could not determine your location from this postal code");
       return;
     }
-
-    onNext({
-      postalCode: cleaned,
-      province: match.province,
-      city: match.city,
-      lat: match.lat,
-      lng: match.lng,
-    });
+    onNext({ postalCode: cleaned, province: match.province, city: match.city, lat: match.lat, lng: match.lng });
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-8 animate-fade-up">
       <div>
-        <h2 className="text-2xl font-bold">Where are you located?</h2>
-        <p className="mt-2 text-zinc-500 dark:text-zinc-400">
-          Your postal code helps us personalize sustainability data for your region.
+        <h2 className="text-editorial text-2xl text-foreground">Where are you located?</h2>
+        <p className="mt-2 text-sm font-light leading-relaxed text-muted">
+          Your postal code personalizes sustainability scores to your region — grid emissions, water stress, and recycling programs all vary across Canada.
         </p>
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="postal-code" className="text-sm font-medium">
+        <label htmlFor="postal-code" className="text-xs font-medium uppercase tracking-widest text-muted">
           Canadian Postal Code
         </label>
         <input
@@ -108,15 +85,21 @@ export default function PostalCodeStep({ onNext }: PostalCodeStepProps) {
           value={postalCode}
           onChange={(e) => handleChange(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-          className="rounded-lg border border-zinc-300 bg-white px-4 py-3 text-lg tracking-wider dark:border-zinc-700 dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-eco-green"
+          className="onboarding-input"
+          autoComplete="postal-code"
+          spellCheck={false}
         />
-        {error && <p className="text-sm text-red-500">{error}</p>}
+        {error && (
+          <p className="text-xs text-eco-red mt-1" role="alert">
+            {error}
+          </p>
+        )}
       </div>
 
       {resolved && (
-        <div className="rounded-lg bg-zinc-50 p-4 dark:bg-zinc-800/50">
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">Detected location</p>
-          <p className="mt-1 text-lg font-medium">
+        <div className="border-t border-border pt-5">
+          <p className="text-xs uppercase tracking-widest text-muted">Detected location</p>
+          <p className="mt-2 text-editorial text-xl text-foreground">
             {resolved.city}, {PROVINCE_NAMES[resolved.province] ?? resolved.province}
           </p>
         </div>
@@ -125,9 +108,9 @@ export default function PostalCodeStep({ onNext }: PostalCodeStepProps) {
       <button
         onClick={handleSubmit}
         disabled={!postalCode.trim()}
-        className="rounded-lg bg-eco-green px-6 py-3 font-semibold text-white transition-colors hover:bg-green-600 disabled:cursor-not-allowed disabled:opacity-50"
+        className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
       >
-        Continue
+        Continue to transport
       </button>
     </div>
   );
