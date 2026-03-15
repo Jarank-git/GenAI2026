@@ -21,28 +21,30 @@ function LineItem({ label, icon, cost, detail, methodology }: LineItemProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <div className="border-b border-gray-100 last:border-b-0">
+    <div className="border-b border-[var(--border)] last:border-b-0">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+        className="flex w-full items-center justify-between px-5 py-4 text-left hover:bg-[var(--earth-light)] transition-colors"
       >
         <div className="flex items-center gap-3">
-          <span className="text-lg">{icon}</span>
+          <span className="text-xl">{icon}</span>
           <div>
-            <p className="text-sm font-medium text-gray-900">{label}</p>
-            <p className="text-xs text-gray-500">{detail}</p>
+            <p className="text-sm font-semibold text-[var(--foreground)]">{label}</p>
+            <p className="text-xs text-[var(--muted)] mt-0.5">{detail}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-red-600">
+          <span className="text-sm font-bold text-[var(--eco-red)]">
             +${cost.toFixed(2)}
           </span>
-          <span className="text-xs text-gray-400">{expanded ? "^" : "v"}</span>
+          <svg className={`h-3.5 w-3.5 text-[var(--muted)] transition-transform ${expanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
         </div>
       </button>
       {expanded && (
-        <div className="px-4 pb-3 pl-12">
-          <p className="text-xs text-gray-500 leading-relaxed">
+        <div className="px-5 pb-4 pl-14">
+          <p className="text-xs text-[var(--muted)] leading-relaxed">
             {methodology}
           </p>
         </div>
@@ -65,9 +67,9 @@ export default function ExternalityBreakdown({
       label: "Carbon Emissions",
       icon: "\u{1F32B}\uFE0F",
       cost: breakdown.carbon.cost,
-      detail: `${breakdown.carbon.kg_co2e} kg CO2e`,
+      detail: `${breakdown.carbon.kg_co2e} kg CO\u2082e`,
       methodology:
-        "Based on Canada's federal carbon price schedule. Covers full lifecycle emissions from production through transport.",
+        "Based on Canada\u2019s federal carbon price schedule. Covers full lifecycle emissions from production through transport.",
     },
     {
       label: "Water Usage",
@@ -96,7 +98,7 @@ export default function ExternalityBreakdown({
       cost: breakdown.land_use.cost,
       detail: `${breakdown.land_use.m2} m\u00B2`,
       methodology:
-        "Reflects the cost of land-use change attributable to this product's supply chain, weighted by commodity impact.",
+        "Reflects the cost of land-use change attributable to this product\u2019s supply chain, weighted by commodity impact.",
     },
     {
       label: "Eutrophication",
@@ -109,28 +111,28 @@ export default function ExternalityBreakdown({
   ];
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+    <div className="eco-card overflow-hidden">
       {shelfPrice !== undefined && (
-        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
-          <span className="text-sm text-gray-600">Shelf Price</span>
-          <span className="text-sm font-semibold text-gray-900">
+        <div className="flex items-center justify-between px-5 py-3.5 bg-[var(--earth-light)] border-b border-[var(--border)]">
+          <span className="text-sm text-[var(--muted)]">Shelf Price</span>
+          <span className="text-sm font-bold text-[var(--foreground)]">
             ${displayShelfPrice.toFixed(2)}
           </span>
         </div>
       )}
 
       {gasCost !== undefined && gasCost > 0 && (
-        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-b border-gray-200">
-          <span className="text-sm text-gray-600">Gas Cost to Store</span>
-          <span className="text-sm font-semibold text-gray-900">
+        <div className="flex items-center justify-between px-5 py-3.5 bg-[var(--earth-light)] border-b border-[var(--border)]">
+          <span className="text-sm text-[var(--muted)]">Gas Cost to Store</span>
+          <span className="text-sm font-bold text-[var(--foreground)]">
             +${displayGasCost.toFixed(2)}
           </span>
         </div>
       )}
 
-      <div className="px-4 py-2 border-b border-gray-200">
-        <p className="text-xs font-semibold uppercase tracking-wide text-red-600">
-          Hidden Costs
+      <div className="px-5 py-3 border-b border-[var(--border)]">
+        <p className="section-label text-[var(--eco-red)]">
+          Hidden Environmental Costs
         </p>
       </div>
 
@@ -140,17 +142,17 @@ export default function ExternalityBreakdown({
         ))}
       </div>
 
-      <div className="flex items-center justify-between px-4 py-4 bg-red-50 border-t border-red-100">
-        <span className="text-sm font-bold text-gray-900">TRUE COST</span>
-        <span className="text-lg font-bold text-red-700">
+      <div className="flex items-center justify-between px-5 py-5 bg-[var(--eco-red)]/8 border-t border-[var(--eco-red)]/15">
+        <span className="text-sm font-bold text-[var(--foreground)] tracking-wide uppercase">True Cost</span>
+        <span className="text-xl font-black text-[var(--eco-red)]">
           ${externality.total_cost.toFixed(2)}
         </span>
       </div>
 
-      <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
-        <p className="text-xs text-center text-gray-500">
+      <div className="px-5 py-3.5 bg-[var(--earth-light)] border-t border-[var(--border)]">
+        <p className="text-xs text-center text-[var(--muted)]">
           Society pays the other{" "}
-          <span className="font-semibold text-red-600">
+          <span className="font-bold text-[var(--eco-red)]">
             ${externality.externality_cost.toFixed(2)}
           </span>
         </p>
