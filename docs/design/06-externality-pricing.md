@@ -1,23 +1,21 @@
 # Feature Design: True Cost Externality Pricing
 
+## Current Status: REAL API INTEGRATION PHASE
+- Scaffolding: COMPLETE — all 5 externality calculators, config constants, and pipeline are built
+- Carbon, water, packaging, land use, eutrophication calculators: Pure math, fully functional
+- Lifecycle research: MOCK ONLY — looks up mock-lifecycle.ts, has TODO for real Gemini API call
+- Externality pricing constants: Real Canadian data (carbon price schedule 2025-2030, water costs, plastic costs by type)
+- **Goal: Get real lifecycle data from Gemini API — when we calculate externality costs, the underlying carbon/water/packaging quantities should come from real Gemini research, not hardcoded mock data**
+
 ## Overview
 
 Calculates and displays the hidden environmental cost of every product — the damage not
 reflected in the shelf price. Grounds these costs in established economic models, anchored
 by Canada's federal carbon price.
 
-## Development Context — READ FIRST
+## Development Context
 
-> **You do NOT have API keys or credentials.** Build all externality calculators (carbon, water,
-> packaging, land use, eutrophication) with **mock/stub Gemini responses** for lifecycle research.
-> The monetization math (carbon price × kg CO2e, etc.) is pure calculation — build that fully.
-> Only the Gemini lifecycle research step needs mocking. Return realistic mock quantities for
-> common product types so the full calculation pipeline and UI can be tested.
->
-> **Your job**: build the complete externality pricing engine so that enabling the Gemini API
-> requires only setting the environment variable — no structural code changes.
->
-> **Testing with real APIs will happen in a separate session** after credentials are configured.
+> API keys are configured in `.env.local`. Services should use real APIs and only fall back to mock data when keys are missing.
 
 ## Problem Statement
 

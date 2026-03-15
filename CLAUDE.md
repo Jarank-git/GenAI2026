@@ -3,6 +3,24 @@
 > Canadian-focused sustainability app that reveals the true cost of products — environmental,
 > ethical, and financial — personalized to the user's location and circumstances.
 
+## Development Phase: REAL API INTEGRATION
+
+> **The scaffolding phase is COMPLETE.** All services, components, orchestrators, types, and
+> mock data are built. The codebase compiles with zero TypeScript errors.
+>
+> **The current goal is to get real data flowing from APIs.** We have Gemini and Cloudinary
+> API keys configured in `.env.local`. Every service that touches these APIs should return
+> real data, not mock data. Mock fallbacks should only activate when API keys are missing.
+>
+> **Available API keys:**
+> - `GEMINI_API_KEY` — Google Gemini 2.0 Flash (product ID, grounded search pricing, sustainability research, lifecycle research, fuzzy matching, batch shelf ID)
+> - `CLOUDINARY_API_KEY` + `CLOUDINARY_API_SECRET` + `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` — image upload, OCR, barcode detection, receipt OCR, shelf multi-detection
+> - Open Food Facts — no key needed, public API, already works
+>
+> **NOT available (stay mock-first):**
+> - `GOOGLE_MAPS_API_KEY` — geocoding uses postal prefix fallback
+> - `PC_EXPRESS_API_KEY` — Layer 1 pricing uses mock data
+
 ## Tech Stack
 
 - **Framework**: Next.js 16.1.6 (App Router, Turbopack dev server)
@@ -23,40 +41,46 @@
 src/
 ├── app/                    # Next.js App Router pages + API routes
 │   ├── layout.tsx          # Root layout
-│   ├── page.tsx            # Home page
-│   ├── scan/               # Product scan page
-│   ├── receipt/            # Receipt scan page
-│   ├── shelf/              # Shelf scan page
-│   ├── onboarding/         # User profile setup
+│   ├── page.tsx            # Home / landing page
+│   ├── scan/               # Product scan page (Feature 01)
+│   ├── receipt/            # Receipt scan page (Feature 07) — mock-only
+│   ├── shelf/              # Shelf scan page (Feature 08) — mock-only, API not wired
+│   ├── onboarding/         # User profile setup (Feature 05)
+│   ├── demo/               # Sorting modes demo (Feature 04) — mock data
 │   └── api/                # Route handlers (server-side)
-│       ├── scan/route.ts       → Feature 01
-│       ├── pricing/route.ts    → Feature 02
-│       ├── score/route.ts      → Feature 03
-│       ├── externality/route.ts → Feature 06
-│       ├── receipt/route.ts    → Feature 07
-│       └── shelf/route.ts     → Feature 08
+│       ├── scan/route.ts       → Feature 01 ✅
+│       ├── pricing/route.ts    → Feature 02 ✅
+│       ├── score/route.ts      → Feature 03 ✅
+│       ├── externality/route.ts → Feature 06 ✅
+│       ├── receipt/route.ts    → Feature 07 ⚠️ (services mock-locked)
+│       └── shelf/route.ts     → Feature 08 ⚠️ (page doesn't call this)
 ├── components/             # React components by feature
-│   ├── ui/                 # Shared UI primitives
-│   ├── scan/               # Camera, disambiguation
-│   ├── comparison/         # Sort bar, product cards, comparison view
-│   ├── receipt/            # Receipt display, swap detail
-│   ├── shelf/              # Shelf overlay, product detail
-│   └── onboarding/         # Profile setup flow
+│   ├── scan/               # CameraCapture, Disambiguation, ProductResult
+│   ├── comparison/         # SortBar, AlternativeCard, ComparisonView, ScannedProductCard
+│   ├── externality/        # ExternalityBreakdown, CostComparison
+│   ├── receipt/            # ReceiptUpload, SustainabilityReceiptView, OptimizedBasketView, SwapCard
+│   ├── shelf/              # ShelfScanner, ShelfOverlay, ShelfProductDetail, ShelfSortToggle
+│   └── onboarding/         # PostalCodeStep, VehicleStep, ConfirmationStep
 ├── services/               # API clients + business logic
-│   ├── cloudinary/         # Image processing, OCR
-│   ├── gemini/             # Gemini API client
-│   ├── maps/               # Google Maps client
+│   ├── cloudinary/         # Image upload, OCR, barcode detection
+│   ├── gemini/             # Gemini 2.0 Flash product identification
 │   ├── pricing/            # 3-layer pricing (pcExpress, groundedSearch, urlContext)
-│   ├── scoring/            # Sustainability scoring engine
-│   ├── externality/        # Externality cost calculators
-│   ├── hyperlocal/         # Context engine (vehicle, grid, water, recycling, seasonal)
-│   ├── receipt/            # Receipt OCR, fuzzy matching, batch analysis
-│   └── shelf/              # Multi-product detection, overlay rendering
-├── orchestrators/          # Pipeline coordinators (scan, pricing, scoring)
+│   ├── scoring/            # Sustainability scoring engine (6 modules)
+│   ├── externality/        # Carbon, water, packaging, land-use, lifecycle calculators
+│   ├── hyperlocal/         # Context engine (geocoding, grid, water, recycling, seasonal, vehicle, gas)
+│   ├── receipt/            # Receipt OCR, parser, fuzzy matching, batch analysis, optimized basket
+│   ├── shelf/              # Multi-detection, batch-identify (stub), parallel analysis, cache
+│   ├── open-food-facts.ts  # Product database lookup
+│   └── product-cache.ts    # 30-day in-memory product cache
+├── orchestrators/          # Pipeline coordinators
+│   ├── scan-pipeline.ts        # Cloudinary → cache → OFF → Gemini
+│   ├── pricing-pipeline.ts     # PC Express + Grounded Search → aggregate → gas cost
+│   ├── scoring-pipeline.ts     # Gemini research + OFF → base score → hyperlocal adjust
+│   └── externality-pipeline.ts # Lifecycle → carbon/water/packaging/land → total cost
 ├── config/                 # Category weights, externality pricing constants
-├── types/                  # Shared TypeScript type definitions
-├── data/                   # Static datasets (NRCan vehicles, seasonal produce, grid factors)
-└── lib/                    # Utilities (env vars, helpers)
+├── types/                  # Product, Scoring, Pricing, Externality, UserProfile, Receipt, Shelf, Alternatives
+├── data/                   # Static data (grid-intensity.json, nrcan-vehicles.json, seasonal-produce.json) + mock data
+└── lib/                    # env.ts, profile-storage.ts, sorting.ts, ratio-stars.ts
 ```
 
 ## Environment Variables
@@ -183,3 +207,34 @@ Gemini NEVER generates prices from training data. All prices must come from:
 - Sustainability scores: 24-hour TTL (hyperlocal may change)
 - Externality costs: 24-hour TTL
 - Hyperlocal data: varies by dimension (see Feature 05 implementation)
+
+## Implementation Status (as of 2026-03-14)
+
+> See `docs/STATUS.md` for full details on every service, known bugs, and remaining work.
+
+| # | Feature | Status | Notes |
+|---|---------|--------|-------|
+| 01 | Product Scanning | **Done** | Full pipeline: Cloudinary → cache → OFF → Gemini. Real APIs with mock fallbacks. |
+| 02 | Multi-Layer Pricing | **Done** | 3-layer pricing wired. PC Express + Grounded Search + URL Context. |
+| 03 | Sustainability Scoring | **Done** | Gemini research + OFF enrichment + hyperlocal adjustments. |
+| 04 | Sorting Modes | **Done** | All 4 modes implemented. Only used in demo page — not yet reachable from scan flow. |
+| 05 | Hyperlocal Context | **Done** | All 7 dimensions implemented. Recycling/gas use mock fallbacks. |
+| 06 | Externality Pricing | **Done** | All 5 cost calculators. Lifecycle research uses mock data (Gemini TODO). |
+| 07 | Receipt Scanning | **Partial** | UI + API route done. All receipt services hardcode `USE_MOCK = true`. |
+| 08 | AR Shelf Scanner | **Partial** | UI + API route exist. Page uses mock data only — never calls API. `batch-identify.ts` is a stub. |
+
+### Known Bugs (do not fix without testing first)
+
+1. **ProductResult race condition** — `src/components/scan/ProductResult.tsx`: externality fetch runs in parallel with pricing, so `shelfPrice` is always `undefined`.
+2. **Pricing pipeline TTL** — `src/orchestrators/pricing-pipeline.ts:42`: `cachePrices(..., 1)` passes `1` as TTL — likely should be `24`.
+3. **Shelf page not wired** — `src/app/shelf/page.tsx` uses mock data, never calls `/api/shelf`.
+4. **Receipt services mock-locked** — `USE_MOCK = true` hardcoded in 4 receipt service files with no env var toggle.
+5. **url-context.ts no fallback** — Returns `null` without API key; no mock data path.
+
+### Connections Still Needed
+
+- **Scan → Comparison**: No way to view alternatives after scanning a product. ComparisonView exists but isn't reachable from the scan flow.
+- **Shelf page → API**: Wire `shelf/page.tsx` to call `/api/shelf` instead of using mock data.
+- **Receipt mock toggle**: Replace hardcoded `USE_MOCK = true` with env-var-driven toggle.
+- **Lifecycle research**: Replace mock lookup in `src/services/externality/lifecycle.ts` with real Gemini API call.
+- **Recycling research**: Replace mock lookup in `src/services/hyperlocal/recycling.ts` with real Gemini API call.

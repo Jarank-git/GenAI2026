@@ -2,34 +2,33 @@
 
 > Design doc: `docs/design/06-externality-pricing.md`
 
+## Current Status: REAL API INTEGRATION PHASE
+- Scaffolding: COMPLETE — all 5 externality calculators, config constants, and pipeline are built
+- Carbon, water, packaging, land use, eutrophication calculators: Pure math, fully functional
+- Lifecycle research: MOCK ONLY — looks up mock-lifecycle.ts, has TODO for real Gemini API call
+- Externality pricing constants: Real Canadian data (carbon price schedule 2025-2030, water costs, plastic costs by type)
+- **Goal: Get real lifecycle data from Gemini API — when we calculate externality costs, the underlying carbon/water/packaging quantities should come from real Gemini research, not hardcoded mock data**
+
 ## Prerequisites
 
 - Feature 05 (Hyperlocal Context Engine) must be complete — provides regional adjustments
 - Feature 01 (Product Scanning) must be complete — provides product identity
-- ~~Gemini API key configured~~ → **NOT AVAILABLE — use mock**
+- Gemini API key configured in `.env.local`
 - ECCC carbon pricing reference data — **publicly available, embed as config**
 
-## Development Context — NO API CREDENTIALS
+## Development Context
 
-**You do not have API keys.** However, most of this feature is **pure calculation logic** that doesn't need APIs:
+API keys are configured in `.env.local`. Services should use real APIs and only fall back to mock data when keys are missing.
 
-**Build fully (no API needed):**
-- Externality constants & pricing config (Step 1) — pure config, all publicly available data
-- Carbon cost calculator (Step 3) — pure math
-- Water cost calculator (Step 4) — pure math
-- Packaging cost calculator (Step 5) — pure math
-- Land use & eutrophication calculators (Step 6) — pure math
-- Externality aggregator (Step 7) — pure orchestration
-- Display component (Step 8) — pure UI
-- Cache layer (Step 9) — pure code
+## Files That Need Real API Verification
 
-**Build with mock/real toggle:**
-- Gemini lifecycle research (Step 2) — **only mock needed here**: return realistic physical quantities (kg CO2e, litres water, grams plastic) for 10-15 common products
-- Create `src/data/mock-lifecycle.ts` with lifecycle data for common grocery/household items
-
-**This is one of the most "buildable" features without credentials** since 8 of 9 steps are pure code.
-
-**Testing with real APIs will happen in a separate session.**
+- `src/services/externality/lifecycle.ts` — PRIORITY: implement real Gemini API call for lifecycle data (carbon_kg_co2e, water_litres, packaging materials, land_use_m2, eutrophication_index)
+- `src/services/externality/carbon.ts` — pure math, works
+- `src/services/externality/water.ts` — pure math, works
+- `src/services/externality/packaging.ts` — pure math, works
+- `src/services/externality/land-use.ts` — pure math, works
+- `src/config/externality-pricing.ts` — real constants, works
+- `src/orchestrators/externality-pipeline.ts` — verify pipeline works end-to-end with real lifecycle data
 
 ## Build Order
 

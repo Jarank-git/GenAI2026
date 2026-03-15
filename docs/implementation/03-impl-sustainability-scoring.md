@@ -1,34 +1,30 @@
 # Implementation Plan: Sustainability Scoring Algorithm
 
+## Current Status: REAL API INTEGRATION PHASE
+- Scaffolding: COMPLETE — all services, components, orchestrators, types, and mock data are built
+- Gemini sustainability research: API key available — need to verify real research calls work
+- Open Food Facts enrichment: Already works (no key needed)
+- Hyperlocal adjustments: Work (pure math on static data)
+- **Goal: Get real sustainability scores from Gemini research — scan a product and get real factor scores, not mock data**
+
 > Design doc: `docs/design/03-sustainability-scoring.md`
 
 ## Prerequisites
 
 - Feature 01 (Product Scanning) must be complete — scoring needs product identity + category
 - Feature 05 (Hyperlocal Context Engine) should be complete — provides adjustment multipliers
-- ~~Gemini API key configured~~ → **NOT AVAILABLE — use mock**
-- Open Food Facts API access — **free, can be called for real**
-- ~~Google Maps API key for distance calculations~~ → **NOT AVAILABLE — use mock**
+- Gemini API key — **AVAILABLE in `.env.local`**
+- Open Food Facts API access — **free, no key needed**
+- Google Maps API key for distance calculations — **NOT AVAILABLE — uses hardcoded distance data**
 
-## Development Context — NO API CREDENTIALS
+## Development Context
 
-**You do not have API keys.** The scoring engine has lots of pure calculation logic that doesn't need APIs:
+API keys are configured in `.env.local`. Services should use real APIs and only fall back to mock data when keys are missing.
 
-**Build fully (no API needed):**
-- Category weight configuration (Step 1) — pure config
-- Base score calculator (Step 5) — pure math
-- Hyperlocal adjustment layer (Step 6) — pure math
-- Score interpretation (Step 7) — pure mapping
-- Scoring orchestrator (Step 8) — pure orchestration
-
-**Build with mock/real toggle:**
-- Gemini sustainability research (Step 2) — mock returns realistic factor scores for 10+ products
-- Transport distance scoring (Step 4) — mock distance lookups, use hardcoded origin data
-- Open Food Facts enrichment (Step 3) — **can be called for real**
-
-**Mock data**: Create `src/data/mock-sustainability.ts` with realistic factor scores (0-100) per product across all 6 factors for common grocery items.
-
-**Testing with real APIs will happen in a separate session.**
+- **Gemini sustainability research (Step 2)**: Gemini API key available — should use real research calls
+- **Open Food Facts enrichment (Step 3)**: Already works (free API, no key needed)
+- **Transport distance scoring (Step 4)**: Google Maps API key not available — uses hardcoded origin data
+- **Pure calculation steps** (Steps 1, 5, 6, 7, 8): Work without any API keys
 
 ## Build Order
 
@@ -161,3 +157,12 @@ src/types/scoring.ts                    — shared type definitions
 - Scores are consistent (±3 pts on repeat) and calibrated against known good/bad products
 - Full scoring pipeline completes within 4 seconds per product
 - Score breakdown (factors + adjustments) available for UI display
+
+## Files That Need Real API Verification
+
+- `src/services/scoring/gemini-research.ts` — verify real Gemini sustainability research works
+- `src/services/scoring/off-enrichment.ts` — already real, verify it works
+- `src/services/scoring/base-calculator.ts` — pure math, works
+- `src/services/scoring/transport.ts` — pure math, works
+- `src/services/scoring/hyperlocal-adj.ts` — pure math, works
+- `src/orchestrators/scoring-pipeline.ts` — verify full pipeline with real Gemini data

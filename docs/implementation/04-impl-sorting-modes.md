@@ -2,6 +2,13 @@
 
 > Design doc: `docs/design/04-sorting-modes.md`
 
+## Current Status: REAL API INTEGRATION PHASE
+- Scaffolding: COMPLETE — all sorting logic, components, and utilities are built
+- All 4 sort modes work with mock data on the demo page
+- **Connection needed: Sorting is not reachable from the scan flow — ComparisonView exists but isn't linked from ProductResult**
+- No API calls in this feature — it consumes data from Features 02, 03, 06
+- **Goal: Wire ComparisonView into the scan results flow so users can see sorted alternatives after scanning a real product**
+
 ## Prerequisites
 
 - Feature 02 (Multi-Layer Pricing) must be complete — provides shelf prices + gas costs
@@ -9,13 +16,20 @@
 - Feature 06 (Externality Pricing) must be complete — provides externality costs
 - Feature 05 (Hyperlocal Context Engine) must be complete — provides vehicle profile for gas cost
 
-## Development Context — NO API CREDENTIALS
+## Development Context
 
-**Good news: this feature is entirely client-side.** No API calls are made directly by the sorting/comparison layer. It consumes data from upstream features (01-03, 06), which will provide mock data.
+API keys are configured in `.env.local`. Services should use real APIs and only fall back to mock data when keys are missing.
 
-**Build everything fully.** Create a `src/data/mock-alternatives.ts` file with 8-10 realistic alternative products (each having all four sort dimensions populated) so all sort modes and UI components can be exercised end-to-end.
+This feature is entirely client-side — no API calls are made directly by the sorting/comparison layer. It consumes data from upstream features (01-03, 06).
 
-**No API-related changes needed for this feature** — just make sure it handles the mock data from upstream features correctly.
+## Files That Need Real API Verification
+
+- `src/lib/sorting.ts` — pure logic, works
+- `src/lib/ratio-stars.ts` — pure logic, works
+- `src/components/comparison/ComparisonView.tsx` — works, needs to be connected to scan flow
+- `src/components/comparison/SortBar.tsx` — works
+- `src/components/comparison/AlternativeCard.tsx` — works
+- **Connection needed**: Add alternatives/comparison step to scan results in `src/app/scan/page.tsx` or `src/components/scan/ProductResult.tsx`
 
 ## Build Order
 

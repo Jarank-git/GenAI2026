@@ -2,34 +2,36 @@
 
 > Design doc: `docs/design/01-product-scanning-identification.md`
 
+## Current Status: REAL API INTEGRATION PHASE
+- Scaffolding: COMPLETE — all services, components, orchestrators, types, and mock data are built
+- Cloudinary integration (upload, OCR, barcode): Services exist with mock fallbacks, need to verify real API calls work with our keys
+- Gemini product identification: Service exists with mock fallback, need to verify real API calls work
+- Open Food Facts: Already works (no key needed)
+- **Goal: Get real product data flowing — scan a real product image and get back real identification, not mock data**
+
 ## Prerequisites
 
-- ~~Cloudinary account with API keys configured~~ → **NOT AVAILABLE — use mock**
-- ~~Gemini API key with vision capabilities enabled~~ → **NOT AVAILABLE — use mock**
-- Open Food Facts API access (no key required) — **this one is free and can be called**
+- Cloudinary account with API keys configured — **AVAILABLE in `.env.local`**
+- Gemini API key with vision capabilities enabled — **AVAILABLE in `.env.local`**
+- Open Food Facts API access (no key required) — **works, no key needed**
+- Google Maps API key — **NOT YET AVAILABLE** (not needed for this feature)
+- PC Express API key — **NOT YET AVAILABLE** (not needed for this feature)
 - No feature dependencies — this is a foundational feature
 
-## Development Context — NO API CREDENTIALS
+## API Configuration
 
-**You do not have API keys.** Build every service module with a mock/real toggle pattern:
+API keys are configured in `.env.local`. Services should use real APIs and only fall back to mock data when keys are missing.
 
-```typescript
-// Pattern for every API service:
-export async function identifyProduct(input: ImageInput): Promise<Product> {
-  if (process.env.GEMINI_API_KEY) {
-    return realGeminiIdentify(input);  // Real implementation (scaffold this)
-  }
-  return mockIdentify(input);          // Mock implementation (build this fully)
-}
-```
+## Files That Need Real API Verification
 
-**Mock data requirements:**
-- Cloudinary mocks: return realistic `{ barcode, ocr_text, brand_detected, confidence }` for 5-10 sample products
-- Gemini mocks: return realistic `{ product_name, brand, category, weight_volume, confidence }` for those same products
-- Open Food Facts: **can be called for real** (no API key needed) — use this as the one live data source
-- Create a `src/data/mock-products.ts` file with sample product data used across all mocks
+The following source files were built during the scaffolding phase and need to be checked/updated to ensure they make real API calls correctly:
 
-**Testing with real APIs will happen in a separate session.** Focus on building correct code structure, types, and UI that work end-to-end with mock data.
+- `src/services/cloudinary/upload.ts` — verify real Cloudinary upload works
+- `src/services/cloudinary/ocr.ts` — verify real OCR extraction works
+- `src/services/cloudinary/barcode.ts` — verify real barcode detection works
+- `src/services/gemini/identify.ts` — verify real Gemini identification works
+- `src/services/open-food-facts.ts` — already real, verify it works
+- `src/orchestrators/scan-pipeline.ts` — verify full pipeline works end-to-end with real APIs
 
 ## Build Order
 

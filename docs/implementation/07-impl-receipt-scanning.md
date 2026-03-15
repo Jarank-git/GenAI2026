@@ -2,36 +2,38 @@
 
 > Design doc: `docs/design/07-receipt-scanning.md`
 
+## Current Status: REAL API INTEGRATION PHASE
+- Scaffolding: COMPLETE — all UI components, API route, and service files are built
+- Receipt OCR: MOCK LOCKED — `USE_MOCK = true` hardcoded in `image-processing.ts`
+- Fuzzy matching: MOCK LOCKED — `USE_MOCK = true` hardcoded in `fuzzy-matcher.ts`
+- Batch analysis: MOCK LOCKED — `USE_MOCK = true` hardcoded in `batch-analysis.ts`
+- Optimized basket: MOCK LOCKED — `USE_MOCK = true` hardcoded in `optimized-basket.ts`
+- Receipt parser: Real regex-based parser, works
+- Receipt generator: Pure logic, works
+- **Goal: Unlock real receipt processing — use Cloudinary OCR for real receipt images and Gemini for fuzzy matching receipt items to products**
+
 ## Prerequisites
 
 - Feature 01 (Product Scanning) must be complete — reuses identification logic
 - Feature 02 (Multi-Layer Pricing) must be complete — prices alternatives
 - Feature 03 (Sustainability Scoring) must be complete — scores each item
 - Feature 06 (Externality Pricing) must be complete — calculates hidden costs
-- ~~Cloudinary OCR add-on enabled~~ → **NOT AVAILABLE — use mock**
+- Cloudinary API keys configured in `.env.local`
 - This is a late-stage feature — build after core pipeline is working
 
-## Development Context — NO API CREDENTIALS
+## Development Context
 
-**You do not have API keys.** Build the full pipeline with mock data:
+API keys are configured in `.env.local`. Services should use real APIs and only fall back to mock data when keys are missing.
 
-**Build with mock/real toggle:**
-- Receipt OCR (Step 1): mock returns realistic OCR text blocks from a sample Loblaws receipt
-- Gemini fuzzy matching (Step 3): mock maps common receipt shorthands to products
+## Files That Need Real API Verification
 
-**Build fully (no API needed):**
-- Receipt parser (Step 2) — pure text parsing logic
-- Batch analysis pipeline (Step 4) — orchestration using upstream feature mocks
-- Sustainability receipt generator (Step 5) — pure aggregation
-- Optimized basket calculator (Step 6) — pure algorithm
-- All UI components (Steps 7-8) — pure React
-
-**Create `src/data/mock-receipt.ts`** with:
-- A sample receipt OCR output (15-20 items from a Loblaws receipt)
-- Matching product identifications for each item
-- This allows the full pipeline to be tested end-to-end without any credentials
-
-**Testing with real APIs will happen in a separate session.**
+- `src/services/receipt/image-processing.ts` — PRIORITY: set `USE_MOCK = false` or replace with env-var toggle, implement real Cloudinary receipt OCR
+- `src/services/receipt/fuzzy-matcher.ts` — PRIORITY: set `USE_MOCK = false` or replace with env-var toggle, implement real Gemini fuzzy matching
+- `src/services/receipt/batch-analysis.ts` — set `USE_MOCK = false` or replace with env-var toggle, calls orchestrators for real scoring
+- `src/services/receipt/optimized-basket.ts` — set `USE_MOCK = false` or replace with env-var toggle
+- `src/services/receipt/parser.ts` — real parser, works
+- `src/services/receipt/receipt-generator.ts` — pure logic, works
+- `src/app/api/receipt/route.ts` — verify route works end-to-end with real services
 
 ## Build Order
 

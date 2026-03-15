@@ -1,23 +1,23 @@
 # Feature Design: Four Sorting Modes
 
+## Current Status: REAL API INTEGRATION PHASE
+- Scaffolding: COMPLETE — all sorting logic, components, and utilities are built
+- All 4 sort modes work with mock data on the demo page
+- **Connection needed: Sorting is not reachable from the scan flow — ComparisonView exists but isn't linked from ProductResult**
+- No API calls in this feature — it consumes data from Features 02, 03, 06
+- **Goal: Wire ComparisonView into the scan results flow so users can see sorted alternatives after scanning a real product**
+
 ## Overview
 
 The core interaction layer. Once alternatives are loaded, users switch between four distinct
 ranking perspectives. Each mode answers a different user question and uses a different
 calculation to sort results.
 
-## Development Context — READ FIRST
+## Development Context
 
-> **You do NOT have API keys or credentials.** This feature is mostly client-side sorting logic
-> and UI — it does not call external APIs directly. Build it using **mock alternative product
-> data** (realistic scores, prices, externalities) so all four sort modes and the UI can be
-> fully tested. The mock data should come from upstream features (01-03, 06) which will also
-> use mocks.
+> API keys are configured in `.env.local`. Services should use real APIs and only fall back to mock data when keys are missing.
 >
-> **Your job**: build the complete sorting + comparison UI so it works end-to-end with mock data
-> and requires zero changes when real API data flows through.
->
-> **Testing with real APIs will happen in a separate session** after credentials are configured.
+> This feature is entirely client-side sorting logic and UI — it does not call external APIs directly. It consumes data from upstream features (01-03, 06).
 
 ## Problem Statement
 

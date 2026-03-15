@@ -1,21 +1,21 @@
 # Feature Design: Multi-Layer Pricing Architecture
 
+## Current Status: REAL API INTEGRATION PHASE
+- Scaffolding: COMPLETE — all services, components, orchestrators, types, and mock data are built
+- Layer 1 (PC Express): NO API key available — stays mock for now
+- Layer 2 (Gemini Grounded Search): API key available — need to verify real grounded search pricing works
+- Layer 3 (URL Context): API key available — need to verify real URL context works
+- Gas cost calculation: Works (pure math), but Google Maps not available for real distances
+- **Goal: Get real pricing data from Gemini Grounded Search (Layer 2) — this is our primary real pricing source**
+
 ## Overview
 
 A three-layer system that ensures every price shown to users is real — never hallucinated.
 Addresses the fundamental LLM limitation: Gemini will fabricate prices if asked to guess.
 
-## Development Context — READ FIRST
+## Development Context
 
-> **You do NOT have API keys or credentials.** Build all three pricing layers (PC Express,
-> Gemini Grounded Search, URL Context) as complete service modules with **mock/stub responses**.
-> Each layer should return realistic mock pricing data (realistic CAD prices, store names,
-> confidence tags) so the UI and aggregation logic can be built and tested end-to-end.
->
-> **Your job**: build the complete pricing architecture so that swapping in real API calls
-> requires only setting environment variables — no structural code changes.
->
-> **Testing with real APIs will happen in a separate session** after credentials are configured.
+> API keys are configured in `.env.local`. Services should use real APIs and only fall back to mock data when keys are missing.
 
 ## Problem Statement
 

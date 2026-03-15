@@ -1,25 +1,26 @@
 # Feature Design: Hyperlocal Context Engine
 
+## Current Status: REAL API INTEGRATION PHASE
+- Scaffolding: COMPLETE — all 7 hyperlocal dimensions are built with static data and mock fallbacks
+- Geocoding: NO Google Maps key — uses postal prefix fallback (works for major cities)
+- Grid emissions, seasonal produce, vehicle data: Real static data (JSON files), fully functional
+- Water stress: Hardcoded regional data, functional
+- Gas prices: Mock per-province prices, functional
+- Recycling: Mock city lookup tables — has TODO for real Gemini research
+- Onboarding flow: Fully functional, saves to localStorage
+- **Goal: Get real recycling data from Gemini API for the user's city instead of hardcoded lookup tables**
+
 ## Overview
 
 The personalization layer that makes EcoLens scores meaningful. Every score passes through
 this engine, which adjusts based on the user's vehicle, location, provincial energy grid,
 local water stress, municipal recycling capabilities, and seasonal context.
 
-## Development Context — READ FIRST
+## Development Context
 
-> **You do NOT have API keys or credentials.** Build all hyperlocal services (geocoding, vehicle
-> lookup, gas prices, grid intensity, water stress, recycling, seasonal data) with **mock/stub
-> implementations**. Use realistic hardcoded data for a few Canadian locations (e.g., Toronto ON,
-> Calgary AB, Vancouver BC) so the adjustment calculator and onboarding UI can be fully tested.
+> API keys are configured in `.env.local`. Services should use real APIs and only fall back to mock data when keys are missing.
 >
-> **Static datasets** (NRCan vehicles, seasonal produce, grid intensity factors) can be built
-> from publicly available CSV/JSON data embedded in the project — these don't require API keys.
->
-> **Your job**: build the complete hyperlocal engine so that enabling real APIs (Google Maps,
-> ECCC, HFED) requires only setting environment variables — no structural code changes.
->
-> **Testing with real APIs will happen in a separate session** after credentials are configured.
+> Static datasets (NRCan vehicles, seasonal produce, grid intensity factors) are embedded as JSON files in `src/data/` — these work without API keys. Geocoding falls back to postal prefix lookup when Google Maps key is unavailable. Recycling lookup should use Gemini API for real municipal data.
 
 ## Problem Statement
 

@@ -2,38 +2,41 @@
 
 > Design doc: `docs/design/08-ar-shelf-scanner.md`
 
+## Current Status: REAL API INTEGRATION PHASE
+- Scaffolding: COMPLETE — all UI components, API route, and service files are built
+- Shelf page: USES MOCK DATA ONLY — `shelf/page.tsx` imports mock data directly and never calls `/api/shelf`
+- API route: EXISTS but is orphaned (never called by the page)
+- Multi-detection: Stub — returns mock bounding boxes without Cloudinary key
+- Batch identify: COMPLETE STUB — returns empty array, needs full implementation
+- Parallel analysis: Mock mode returns pre-analyzed data, real mode calls orchestrators
+- Shelf cache: Works (in-memory, 24h TTL)
+- UI components: All 4 work (ShelfScanner, ShelfOverlay, ShelfProductDetail, ShelfSortToggle)
+- **Goal: Wire shelf/page.tsx to call /api/shelf with real camera images, implement real Cloudinary multi-detection and Gemini batch identification, get real shelf scanning working end-to-end**
+
 ## Prerequisites
 
 - Feature 01 (Product Scanning) must be complete — reuses identification logic
 - Feature 02 (Multi-Layer Pricing) must be complete — prices each product
 - Feature 03 (Sustainability Scoring) must be complete — scores each product
 - Feature 06 (Externality Pricing) must be complete — calculates hidden costs
-- ~~Cloudinary object detection capabilities enabled~~ → **NOT AVAILABLE — use mock**
+- Cloudinary object detection capabilities enabled
 - This is a late-stage feature — build after core pipeline + receipt scanning
 
-## Development Context — NO API CREDENTIALS
+## Development Context
 
-**You do not have API keys.** Build the full pipeline with mock data:
+API keys are configured in `.env.local`. Services should use real APIs and only fall back to mock data when keys are missing.
 
-**Build with mock/real toggle:**
-- Multi-product detection (Step 2): mock returns realistic bounding boxes + OCR for 8-10 products
-- Batch identification (Step 3): mock returns product identifications for detected items
+## Files That Need Real API Verification
 
-**Build fully (no API needed):**
-- Shelf image capture UI (Step 1) — pure camera/React component
-- Parallel scoring & pricing (Step 4) — orchestration using upstream feature mocks
-- Overlay renderer (Step 5) — pure rendering logic (Canvas/CSS overlays on image)
-- Product detail tap interaction (Step 6) — pure UI
-- Sort toggle (Step 7) — pure UI
-- Cache layer (Step 8) — pure code
-- Progressive loading UX (Step 9) — pure UI state management
-
-**Create `src/data/mock-shelf.ts`** with:
-- Sample bounding box data for a grocery shelf (8-10 products with positions)
-- Product identifications for each bounding box
-- This allows the overlay renderer and interactions to be fully tested
-
-**Testing with real APIs will happen in a separate session.**
+- `src/app/shelf/page.tsx` — PRIORITY: rewire to call `/api/shelf` instead of importing mock data
+- `src/services/shelf/multi-detection.ts` — PRIORITY: implement real Cloudinary object detection for shelf products
+- `src/services/shelf/batch-identify.ts` — PRIORITY: implement real Gemini batch identification (currently returns empty array)
+- `src/services/shelf/parallel-analysis.ts` — verify real mode works (calls scoreProduct + calculateTotalExternality orchestrators)
+- `src/services/shelf/cache.ts` — works
+- `src/app/api/shelf/route.ts` — verify route works end-to-end once services are real
+- `src/components/shelf/ShelfScanner.tsx` — works
+- `src/components/shelf/ShelfOverlay.tsx` — works
+- `src/components/shelf/ShelfProductDetail.tsx` — works
 
 ## Build Order
 

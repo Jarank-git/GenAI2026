@@ -1,37 +1,32 @@
 # Implementation Plan: Multi-Layer Pricing Architecture
 
+## Current Status: REAL API INTEGRATION PHASE
+- Scaffolding: COMPLETE — all services, components, orchestrators, types, and mock data are built
+- Layer 1 (PC Express): NO API key available — stays mock for now
+- Layer 2 (Gemini Grounded Search): API key available — need to verify real grounded search pricing works
+- Layer 3 (URL Context): API key available — need to verify real URL context works
+- Gas cost calculation: Works (pure math), but Google Maps not available for real distances
+- **Goal: Get real pricing data from Gemini Grounded Search (Layer 2) — this is our primary real pricing source**
+
 > Design doc: `docs/design/02-multi-layer-pricing.md`
 
 ## Prerequisites
 
 - Feature 01 (Product Scanning) must be complete — pricing needs a product identity
-- ~~PC Express API key obtained~~ → **NOT AVAILABLE — use mock**
-- ~~Gemini API key with Google Search Grounding enabled~~ → **NOT AVAILABLE — use mock**
+- PC Express API key — **NOT AVAILABLE — stays mock for now**
+- Gemini API key with Google Search Grounding enabled — **AVAILABLE in `.env.local`**
 - In-memory cache (use a simple Map or Next.js cache — no Redis needed for dev)
 
-## Development Context — NO API CREDENTIALS
+## Development Context
 
-**You do not have API keys.** Build all three pricing layers with mock/real toggle:
+API keys are configured in `.env.local`. Services should use real APIs and only fall back to mock data when keys are missing.
 
-```typescript
-export async function queryPCExpress(product: string, banner: string): Promise<PriceResult | null> {
-  if (process.env.PC_EXPRESS_API_KEY) {
-    return realPCExpressQuery(product, banner);  // Scaffold real implementation
-  }
-  return mockPCExpressQuery(product, banner);    // Return realistic mock prices
-}
-```
+- **Layer 1 (PC Express)**: No API key available — continues to use mock data
+- **Layer 2 (Gemini Grounded Search)**: Gemini API key available — should use real grounded search calls
+- **Layer 3 (URL Context)**: Gemini API key available — should use real URL context calls
+- **Gas cost**: Google Maps API key not available — uses hardcoded store distances
 
-**Mock data requirements:**
-- Layer 1 mock: realistic Loblaw banner prices for 10-15 common grocery products across 3-4 banners (Loblaws, No Frills, Superstore)
-- Layer 2 mock: realistic web-estimate prices for Walmart, Metro, Sobeys
-- Include realistic price variation between stores ($2.49 vs $2.99 vs $3.29)
-- Tag mock data with correct confidence labels (`verified` for L1, `web_estimate` for L2)
-- Create `src/data/mock-prices.ts` with the mock pricing dataset
-
-**The aggregation, deduplication, gas cost calculation, and caching logic are pure code** — build these fully, they don't need API keys.
-
-**Testing with real APIs will happen in a separate session.**
+The aggregation, deduplication, gas cost calculation, and caching logic are pure code and work without API keys.
 
 ## Build Order
 
@@ -147,3 +142,11 @@ src/types/pricing.ts                    — shared type definitions
 - Gas cost calculated per store using user's vehicle profile
 - Caching reduces redundant API calls with appropriate TTLs
 - Full price list returned within 5 seconds for a single product
+
+## Files That Need Real API Verification
+
+- `src/services/pricing/pc-express.ts` — NO key available, stays mock
+- `src/services/pricing/grounded-search.ts` — verify real Gemini grounded search works
+- `src/services/pricing/url-context.ts` — verify real URL context works, add mock fallback if missing
+- `src/services/pricing/gas-cost.ts` — works, but uses hardcoded store distances (no Google Maps key)
+- `src/orchestrators/pricing-pipeline.ts` — verify full pipeline with real Layer 2 data

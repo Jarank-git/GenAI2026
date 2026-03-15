@@ -1,22 +1,21 @@
 # Feature Design: Sustainability Scoring Algorithm
 
+## Current Status: REAL API INTEGRATION PHASE
+- Scaffolding: COMPLETE — all services, components, orchestrators, types, and mock data are built
+- Gemini sustainability research: API key available — need to verify real research calls work
+- Open Food Facts enrichment: Already works (no key needed)
+- Hyperlocal adjustments: Work (pure math on static data)
+- **Goal: Get real sustainability scores from Gemini research — scan a product and get real factor scores, not mock data**
+
 ## Overview
 
 A category-agnostic scoring system (0-100) that evaluates products across environmental,
 ethical, and lifecycle dimensions. Scoring weights shift by product category to reflect
 what matters most for that type of product.
 
-## Development Context — READ FIRST
+## Development Context
 
-> **You do NOT have API keys or credentials.** Build the full scoring engine — category weights,
-> factor scoring, hyperlocal adjustments, score interpretation — with **mock/stub API responses**.
-> Gemini sustainability research and Open Food Facts lookups should return realistic mock data
-> so the scoring math and UI can be fully exercised without credentials.
->
-> **Your job**: build the complete scoring pipeline so that enabling real APIs requires only
-> setting environment variables — no structural code changes.
->
-> **Testing with real APIs will happen in a separate session** after credentials are configured.
+> API keys are configured in `.env.local`. Services should use real APIs and only fall back to mock data when keys are missing.
 
 ## Problem Statement
 

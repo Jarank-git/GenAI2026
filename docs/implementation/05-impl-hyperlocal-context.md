@@ -2,33 +2,51 @@
 
 > Design doc: `docs/design/05-hyperlocal-context-engine.md`
 
+## Current Status: REAL API INTEGRATION PHASE
+- Scaffolding: COMPLETE — all 7 hyperlocal dimensions are built with static data and mock fallbacks
+- Geocoding: NO Google Maps key — uses postal prefix fallback (works for major cities)
+- Grid emissions, seasonal produce, vehicle data: Real static data (JSON files), fully functional
+- Water stress: Hardcoded regional data, functional
+- Gas prices: Mock per-province prices, functional
+- Recycling: Mock city lookup tables — has TODO for real Gemini research
+- Onboarding flow: Fully functional, saves to localStorage
+- **Goal: Get real recycling data from Gemini API for the user's city instead of hardcoded lookup tables**
+
 ## Prerequisites
 
-- ~~Google Maps Geocoding API key configured~~ → **NOT AVAILABLE — use mock**
-- NRCan datasets — **publicly available CSVs, can be embedded as static JSON**
-- ECCC grid data — **publicly available, can be embedded as static JSON**
-- ~~HFED real-time API~~ → **NOT AVAILABLE — use static ECCC values instead**
+- ~~Google Maps Geocoding API key configured~~ → **NOT AVAILABLE — uses postal prefix fallback**
+- NRCan datasets — embedded as static JSON in `src/data/`
+- ECCC grid data — embedded as static JSON in `src/data/`
+- ~~HFED real-time API~~ → using static ECCC values
+- Gemini API key — **AVAILABLE** (configured in `.env.local`)
 - No feature dependencies — this is a foundational feature (build early)
 
-## Development Context — NO API CREDENTIALS
+## Development Context
 
-**You do not have API keys.** However, much of this feature uses **publicly available static datasets** that can be embedded directly:
+API keys are configured in `.env.local`. Services should use real APIs and only fall back to mock data when keys are missing.
 
-**Build fully with embedded data (no API needed):**
-- NRCan vehicle fuel consumption data → download CSV, parse to JSON, embed in `src/data/`
-- ECCC grid emission intensity factors → embed as `src/data/grid-intensity.json`
-- Seasonal produce calendar → build static lookup table in `src/data/seasonal-produce.json`
+**Embedded static data (no API needed):**
+- NRCan vehicle fuel consumption data → `src/data/nrcan-vehicles.json`
+- ECCC grid emission intensity factors → `src/data/grid-intensity.json`
+- Seasonal produce calendar → `src/data/seasonal-produce.json`
 - User profile data model + onboarding UI → pure client-side code
 
-**Build with mock/real toggle:**
-- Geocoding (Step 2): mock with hardcoded lat/lng for Toronto, Calgary, Vancouver, Montreal
-- Gas prices (Step 4): use recent NRCan published averages as hardcoded fallback
-- Water stress (Step 6): mock with hardcoded stress indices for major regions
-- Recycling lookup (Step 7): mock with hardcoded recycling lists for Toronto, Calgary, Vancouver
+**Current API status:**
+- Geocoding: No Google Maps key — postal prefix fallback works for major cities
+- Gas prices: Mock per-province prices — optional NRCan API via env var
+- Water stress: Hardcoded regional data — functional
+- Recycling lookup: TODO — implement real Gemini API call instead of hardcoded lookup tables
 
-**Create `src/data/mock-hyperlocal.ts`** with realistic context data for 3-4 Canadian cities so the adjustment calculator can be fully tested.
+## Files That Need Real API Verification
 
-**Testing with real APIs will happen in a separate session.**
+- `src/services/hyperlocal/geocoding.ts` — NO Google Maps key, postal prefix fallback works
+- `src/services/hyperlocal/recycling.ts` — TODO: implement real Gemini API call for municipal recycling data
+- `src/services/hyperlocal/gas-price.ts` — mock per-province, optional NRCan API via env var
+- `src/services/hyperlocal/grid-emissions.ts` — real static data, works
+- `src/services/hyperlocal/seasonal.ts` — real static data, works
+- `src/services/hyperlocal/vehicle-data.ts` — real static data, works
+- `src/services/hyperlocal/water-stress.ts` — hardcoded regional data, works
+- `src/lib/profile-storage.ts` — works (localStorage)
 
 ## Build Order
 

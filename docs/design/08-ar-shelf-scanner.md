@@ -1,23 +1,25 @@
 # Feature Design: AR Shelf Scanner
 
+## Current Status: REAL API INTEGRATION PHASE
+- Scaffolding: COMPLETE — all UI components, API route, and service files are built
+- Shelf page: USES MOCK DATA ONLY — `shelf/page.tsx` imports mock data directly and never calls `/api/shelf`
+- API route: EXISTS but is orphaned (never called by the page)
+- Multi-detection: Stub — returns mock bounding boxes without Cloudinary key
+- Batch identify: COMPLETE STUB — returns empty array, needs full implementation
+- Parallel analysis: Mock mode returns pre-analyzed data, real mode calls orchestrators
+- Shelf cache: Works (in-memory, 24h TTL)
+- UI components: All 4 work (ShelfScanner, ShelfOverlay, ShelfProductDetail, ShelfSortToggle)
+- **Goal: Wire shelf/page.tsx to call /api/shelf with real camera images, implement real Cloudinary multi-detection and Gemini batch identification, get real shelf scanning working end-to-end**
+
 ## Overview
 
 User points their phone at a store shelf. The app identifies multiple products simultaneously,
 overlays color-coded sustainability scores, and highlights the best option. Scan the whole
 shelf instead of one product at a time.
 
-## Development Context — READ FIRST
+## Development Context
 
-> **You do NOT have API keys or credentials.** Build the full shelf scanning pipeline with
-> **mock/stub implementations** for Cloudinary object detection, Gemini batch identification,
-> and all downstream analysis. Use **hardcoded mock detection results** (bounding boxes,
-> product names) so the overlay renderer, tap interactions, and sort toggle can be fully
-> built and tested without credentials.
->
-> **Your job**: build the complete shelf scanner architecture so that enabling real APIs
-> requires only setting environment variables — no structural code changes.
->
-> **Testing with real APIs will happen in a separate session** after credentials are configured.
+API keys are configured in `.env.local`. Services should use real APIs and only fall back to mock data when keys are missing.
 
 ## Problem Statement
 

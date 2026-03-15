@@ -1,23 +1,24 @@
 # Feature Design: Receipt Scanning — Retroactive Analysis
 
+## Current Status: REAL API INTEGRATION PHASE
+- Scaffolding: COMPLETE — all UI components, API route, and service files are built
+- Receipt OCR: MOCK LOCKED — `USE_MOCK = true` hardcoded in `image-processing.ts`
+- Fuzzy matching: MOCK LOCKED — `USE_MOCK = true` hardcoded in `fuzzy-matcher.ts`
+- Batch analysis: MOCK LOCKED — `USE_MOCK = true` hardcoded in `batch-analysis.ts`
+- Optimized basket: MOCK LOCKED — `USE_MOCK = true` hardcoded in `optimized-basket.ts`
+- Receipt parser: Real regex-based parser, works
+- Receipt generator: Pure logic, works
+- **Goal: Unlock real receipt processing — use Cloudinary OCR for real receipt images and Gemini for fuzzy matching receipt items to products**
+
 ## Overview
 
 Photograph a grocery receipt after shopping. The app analyzes every item purchased,
 generates sustainability scores, calculates true costs, and recommends an optimized basket
 for next time. Zero friction entry point — meets users where they already are.
 
-## Development Context — READ FIRST
+## Development Context
 
-> **You do NOT have API keys or credentials.** Build the full receipt scanning pipeline with
-> **mock/stub implementations** for Cloudinary OCR, Gemini fuzzy matching, and all downstream
-> analysis. Use a **hardcoded sample receipt** (realistic Loblaws/No Frills receipt with 10-15
-> items) as test data so the parser, matcher, sustainability receipt generator, and optimized
-> basket calculator can all be built and tested end-to-end without credentials.
->
-> **Your job**: build the complete receipt scanning architecture so that enabling real APIs
-> requires only setting environment variables — no structural code changes.
->
-> **Testing with real APIs will happen in a separate session** after credentials are configured.
+> API keys are configured in `.env.local`. Services should use real APIs and only fall back to mock data when keys are missing.
 
 ## Problem Statement
 
