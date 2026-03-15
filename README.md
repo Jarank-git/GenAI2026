@@ -58,14 +58,24 @@ Carbon costs are based on Canada's published social cost of carbon. Water, packa
 
 ## Built With
 
+### Tech Stack
+
 | | |
 |-|-|
-| **Google Gemini 2.0 Flash** | Product identification, sustainability research, real-time pricing from the web |
-| **Cloudinary** | Barcode detection, label reading, receipt scanning, shelf detection |
-| **Open Food Facts** | Product database and eco-score enrichment |
-| **PC Express (Loblaw)** | Verified live prices across Loblaws, No Frills, Real Canadian Superstore, and more |
-| **Google Maps** | Store distances and driving routes |
-| **NRCan Vehicle Data** | Fuel efficiency for every Canadian vehicle make and model |
+| **Framework** | Next.js 16.1.6 (App Router) |
+| **Frontend** | React 19, TypeScript 5, Tailwind CSS 4 |
+| **Deployment** | Vercel |
+
+### APIs & Services
+
+| | |
+|-|-|
+| **Google Gemini 2.0 Flash** | Product identification, sustainability research, lifecycle analysis, real-time grounded pricing, fuzzy receipt matching, shelf batch identification |
+| **Cloudinary** | Barcode detection, label OCR, receipt text extraction, multi-product shelf detection |
+| **Open Food Facts** | Public product database, eco-scores, ingredient and packaging data |
+| **PC Express (Loblaw)** | Verified live prices across Loblaws, No Frills, Real Canadian Superstore, Shoppers Drug Mart, and Zehrs |
+| **Google Maps Platform** | Driving distance to stores, postal code geocoding |
+| **NRCan Open Data** | Official Canadian vehicle fuel efficiency database for personalised gas cost calculations |
 
 ---
 
