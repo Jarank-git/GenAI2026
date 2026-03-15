@@ -16,6 +16,8 @@ export const mockScannedProduct: AlternativeProduct = {
   distance_km: 5.5,
   price_confidence: "verified",
   ratio_stars: 3,
+  store_url: "https://www.loblaws.ca/food/pantry/pasta/c/28195",
+  ai_reasoning: "Barilla is a widely available conventional pasta with moderate sustainability. Its Italian import origin adds transport emissions (1.8 kg CO₂e), and its plastic film packaging is not recyclable in most Canadian municipalities. Score of 58 reflects decent brand ethics offset by high food miles and non-recyclable packaging.",
 };
 
 export const mockAlternatives: AlternativeProduct[] = [
@@ -35,6 +37,8 @@ export const mockAlternatives: AlternativeProduct[] = [
     distance_km: 4.2,
     price_confidence: "verified",
     ratio_stars: 4,
+    store_url: "https://www.nofrills.ca/food/pantry/pasta-&-noodles/dried-pasta/c/28195",
+    ai_reasoning: "Best value-to-sustainability ratio at 17.8. Despite a moderate sustainability score of 52, the extremely low shelf price ($1.29) means you get the most sustainability per dollar spent. Canadian-milled durum wheat reduces transport emissions vs. imported brands. Minimal packaging (cardboard box only, fully recyclable). Ranks #1 in Sweet Spot mode because the low total cost ($2.92) makes the ratio unbeatable.",
   },
   {
     product_id: "alt-catelli-smart-spaghetti",
@@ -52,6 +56,8 @@ export const mockAlternatives: AlternativeProduct[] = [
     distance_km: 3.0,
     price_confidence: "verified",
     ratio_stars: 3,
+    store_url: "https://www.metro.ca/en/online-grocery/search?filter=catelli+smart",
+    ai_reasoning: "Catelli Smart uses Canadian-grown wheat and adds flaxseed and oat fibre for nutrition. Score of 65 reflects strong domestic sourcing (low transport emissions, 0.9 kg CO₂e) and Catelli's B-Corp-adjacent practices. The 'Smart' line uses responsibly sourced ingredients. Moderate externality cost ($0.85) due to standard plastic-windowed packaging. Close store distance (3 km) keeps gas cost low at $0.60.",
   },
   {
     product_id: "alt-gogo-quinoa-fusilli",
@@ -69,6 +75,8 @@ export const mockAlternatives: AlternativeProduct[] = [
     distance_km: 7.1,
     price_confidence: "web_estimate",
     ratio_stars: 3,
+    store_url: "https://www.wholefoodsmarket.com/search?text=gogo+quinoa+fusilli",
+    ai_reasoning: "Highest sustainability score (92) in the set. Certified organic quinoa from fair-trade cooperatives in Bolivia reduces pesticide runoff and supports smallholder farmers. Compostable packaging earns top marks for end-of-life. Very low externality cost ($0.32) because organic farming avoids synthetic fertilizers (reducing eutrophication) and quinoa's nitrogen-fixing properties improve soil health. Ranked lower in Sweet Spot/Budget modes due to premium pricing ($5.99 + $1.40 gas to Yorkville).",
   },
   {
     product_id: "alt-great-value-macaroni",
@@ -86,6 +94,8 @@ export const mockAlternatives: AlternativeProduct[] = [
     distance_km: 6.3,
     price_confidence: "verified",
     ratio_stars: 2,
+    store_url: "https://www.walmart.ca/search?q=great+value+macaroni",
+    ai_reasoning: "Cheapest shelf price ($0.97) but lowest sustainability score (38). High externality cost ($1.45) due to conventional industrial farming with heavy synthetic fertilizer use (eutrophication index 7/10), non-recyclable plastic bag packaging, and long-distance supply chain from US mills. While it leads in Budget mode at $2.22 out-of-pocket, the hidden environmental costs nearly equal the shelf price — making the true cost $3.67. The 6.3 km distance to Walmart Dufferin also adds gas cost.",
   },
   {
     product_id: "alt-rummo-linguine",
@@ -103,6 +113,8 @@ export const mockAlternatives: AlternativeProduct[] = [
     distance_km: 5.5,
     price_confidence: "verified",
     ratio_stars: 3,
+    store_url: "https://www.loblaws.ca/food/pantry/pasta/c/28195",
+    ai_reasoning: "Premium Italian import with strong sustainability credentials. Rummo uses slow-drying 'Lenta Lavorazione' process that's more energy-efficient per kg than standard extrusion. Family-owned since 1846 with documented water recycling in production. Score of 72 balances excellent brand ethics and production methods against higher transport emissions from Italy (2.1 kg CO₂e). Moderate externality ($0.68) reflects good packaging (recyclable cardboard) offset by shipping distance.",
   },
   {
     product_id: "alt-pc-organics-spaghettini",
@@ -120,6 +132,8 @@ export const mockAlternatives: AlternativeProduct[] = [
     distance_km: 4.8,
     price_confidence: "verified",
     ratio_stars: 4,
+    store_url: "https://www.realcanadiansuperstore.ca/food/pantry/pasta-&-noodles/c/28195",
+    ai_reasoning: "Strong contender across all modes — high sustainability (78) at a reasonable price ($3.29). Certified organic reduces pesticide-related water pollution (scarcity multiplier only 0.8x vs. 1.2x for conventional). PC Organics sources from Canadian and Italian organic farms with verified supply chain transparency. Low externality ($0.45) from organic certification reducing eutrophication and recyclable packaging. Ratio of 16.6 makes it #2 in Sweet Spot mode — excellent sustainability per dollar.",
   },
   {
     product_id: "alt-italpasta-rotini",
@@ -137,6 +151,8 @@ export const mockAlternatives: AlternativeProduct[] = [
     distance_km: 4.2,
     price_confidence: "verified",
     ratio_stars: 4,
+    store_url: "https://www.nofrills.ca/food/pantry/pasta-&-noodles/dried-pasta/c/28195",
+    ai_reasoning: "Canadian-made (Montreal) which significantly reduces transport emissions vs. imported pasta. Italpasta is Canada's largest pasta manufacturer, using 100% Canadian durum wheat. Score of 55 reflects good domestic sourcing but standard conventional farming practices. Externality cost of $0.90 is moderate — standard fertilizer use and recyclable cardboard packaging balance out. Strong Sweet Spot performer (ratio 15.5) because the low price and Canadian origin create good value.",
   },
   {
     product_id: "alt-selection-penne-rigate",
@@ -154,6 +170,8 @@ export const mockAlternatives: AlternativeProduct[] = [
     distance_km: 3.0,
     price_confidence: "web_estimate",
     ratio_stars: 3,
+    store_url: "https://www.metro.ca/en/online-grocery/search?filter=selection+penne",
+    ai_reasoning: "Metro's store brand with below-average sustainability (48). Limited supply chain transparency for the Selection brand — unclear sourcing origin contributes to lower score. Standard conventional wheat farming practices and plastic-windowed cardboard packaging. Web-estimated price ($2.29) means less pricing confidence. Close store proximity (3 km) is the main advantage, keeping gas cost to $0.60. Externality of $0.95 is on the higher side due to unknown production methods and packaging recyclability uncertainty.",
   },
   {
     product_id: "alt-sobeys-compliments-organic",
@@ -171,5 +189,7 @@ export const mockAlternatives: AlternativeProduct[] = [
     distance_km: 3.5,
     price_confidence: "verified",
     ratio_stars: 4,
+    store_url: "https://www.sobeys.com/en/search/?q=compliments+organic+penne",
+    ai_reasoning: "Second-highest sustainability score (82). Organic whole wheat means higher fibre and no synthetic pesticides — reducing both water pollution and land degradation. Sobeys' Compliments Organic line has verified Canadian and Italian organic sourcing. Very low externality ($0.38) — organic certification reduces eutrophication, and whole wheat processing retains more of the grain (less waste). Close store at 3.5 km keeps gas cost reasonable ($0.70). Excellent ratio of 16.2 places it in the top tier for Sweet Spot mode.",
   },
 ];

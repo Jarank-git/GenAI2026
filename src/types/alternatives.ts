@@ -20,6 +20,10 @@ export interface AlternativeProduct {
   distance_km: number | null;
   price_confidence: PriceConfidence;
   ratio_stars: number; // 1-5, calculated relative to result set
+
+  // Product link & AI reasoning
+  store_url?: string; // Link to actual product on retailer website
+  ai_reasoning?: string; // AI explanation of why this product ranks where it does
 }
 
 export type SortMode = "green" | "budget" | "sweet_spot" | "planet_pick";
