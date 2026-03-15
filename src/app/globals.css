@@ -5,7 +5,7 @@
   --foreground: #1A1A18;
   --card: #F5F5F0;
   --border: #E2E0D8;
-  --muted: #8A8A80;
+  --muted: #6A6A60;
   --accent: #4A6741;
   --accent-light: #D4DFD0;
   --accent-hover: #3A5531;
@@ -71,7 +71,16 @@ body {
   font-weight: 500;
   letter-spacing: 0.15em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--accent);
+}
+
+.section-label-light {
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 0.7rem;
+  font-weight: 500;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: color-mix(in oklch, var(--accent-light) 70%, transparent);
 }
 
 /* ─── Animations ─────────────────────────────────────── */
@@ -423,6 +432,36 @@ html {
 .btn-secondary:hover {
   border-color: var(--accent);
   color: var(--accent);
+}
+
+.btn-ghost-light {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.75rem;
+  font-family: var(--font-body), system-ui, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: rgba(250, 250, 247, 0.6);
+  background: transparent;
+  border: 1px solid rgba(250, 250, 247, 0.15);
+  border-radius: 50px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) {
+  .btn-ghost-light:hover {
+    border-color: rgba(250, 250, 247, 0.4);
+    color: rgba(250, 250, 247, 0.9);
+  }
+}
+
+.btn-ghost-light:active {
+  transform: scale(0.96);
+  transition-duration: 0.08s;
 }
 
 /* ─── Onboarding Form Elements ──────────────────────── */

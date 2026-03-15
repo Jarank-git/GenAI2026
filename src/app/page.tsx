@@ -170,7 +170,7 @@ export default function Home() {
       {/* ── Approach ── */}
       <section
         ref={approachRef as React.RefObject<HTMLElement>}
-        className={`border-b border-border px-6 py-20 md:px-10 md:py-28 reveal ${approachVisible ? "is-visible" : ""}`}
+        className={`border-b border-border bg-earth-light px-6 py-20 md:px-10 md:py-28 reveal ${approachVisible ? "is-visible" : ""}`}
       >
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 gap-12 md:grid-cols-[180px_1fr]">
@@ -205,7 +205,7 @@ export default function Home() {
       <section
         id="how-it-works"
         ref={stepsRef as React.RefObject<HTMLElement>}
-        className={`border-b border-border px-6 py-20 md:px-10 md:py-28 reveal ${stepsVisible ? "is-visible" : ""}`}
+        className={`border-b border-border bg-card px-6 py-20 md:px-10 md:py-28 reveal ${stepsVisible ? "is-visible" : ""}`}
       >
         <div className="mx-auto max-w-7xl">
           <p className="section-label mb-16">How It Works</p>
@@ -220,7 +220,7 @@ export default function Home() {
                 key={s.n}
                 className={`border-t border-border py-10 pr-0 md:pr-16 reveal ${stepsVisible ? `is-visible reveal-delay-${i + 1}` : ""}`}
               >
-                <span className="text-[0.65rem] uppercase tracking-widest text-muted">{s.n}</span>
+                <span className="text-display tabular text-2xl text-accent">{s.n}</span>
                 <h3 className="text-editorial mt-3 mb-3 text-2xl text-foreground">{s.title}</h3>
                 <p className="max-w-[45ch] text-sm font-light leading-relaxed text-muted">{s.body}</p>
               </div>
@@ -265,26 +265,26 @@ export default function Home() {
       {/* ── CTA ── */}
       <section
         ref={ctaRef as React.RefObject<HTMLElement>}
-        className={`px-6 py-20 md:px-10 md:py-28 reveal ${ctaVisible ? "is-visible" : ""}`}
+        className={`bg-surface-dark px-6 py-20 md:px-10 md:py-28 reveal ${ctaVisible ? "is-visible" : ""}`}
       >
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 items-center gap-12 md:grid-cols-2">
             <div>
-              <p className="section-label mb-6">Get Started</p>
-              <h2 className="text-display cta-headline">
+              <p className="section-label-light mb-6">Get Started</p>
+              <h2 className="text-display cta-headline text-white/90">
                 See what your groceries<br />
-                <em className="text-accent">actually cost.</em>
+                <em className="text-accent-light">actually cost.</em>
               </h2>
             </div>
             <div className="flex flex-col gap-5 md:items-end md:text-right">
-              <p className="max-w-sm text-sm font-light leading-relaxed text-muted">
+              <p className="max-w-sm text-sm font-light leading-relaxed text-white/50">
                 Set up your profile with your postal code and vehicle. Every score and cost you see will be grounded in your actual life.
               </p>
               <div className="flex flex-wrap gap-3 md:justify-end">
                 <Link href="/onboarding" className="btn-primary">
                   {profileCity ? `Profile: ${profileCity}` : "Set Up Your Profile"}
                 </Link>
-                <Link href="/scan" className="btn-secondary">Scan Now</Link>
+                <Link href="/scan" className="btn-ghost-light">Scan Now</Link>
               </div>
             </div>
           </div>
@@ -292,19 +292,19 @@ export default function Home() {
       </section>
 
       {/* ── Footer ── */}
-      <footer className="border-t border-border px-6 py-10 md:px-10">
+      <footer className="bg-surface-dark border-t border-white/10 px-6 py-10 md:px-10">
         <div className="mx-auto max-w-7xl flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-display text-xl text-foreground">EcoLens</p>
-            <p className="mt-1 text-xs font-light text-muted">Canadian sustainability intelligence</p>
+            <p className="text-display text-xl text-white/80">EcoLens</p>
+            <p className="mt-1 text-xs font-light text-white/30">Canadian sustainability intelligence</p>
           </div>
           <div className="flex flex-wrap gap-6">
-            <Link href="/scan" className="nav-link">Scan</Link>
-            <Link href="/receipt" className="nav-link">Receipt</Link>
-            <Link href="/demo" className="nav-link">Demo</Link>
-            <Link href="/onboarding" className="nav-link">Profile</Link>
+            <Link href="/scan" className="text-[0.65rem] font-medium tracking-widest uppercase text-white/40 hover:text-white/70 transition-colors duration-200">Scan</Link>
+            <Link href="/receipt" className="text-[0.65rem] font-medium tracking-widest uppercase text-white/40 hover:text-white/70 transition-colors duration-200">Receipt</Link>
+            <Link href="/demo" className="text-[0.65rem] font-medium tracking-widest uppercase text-white/40 hover:text-white/70 transition-colors duration-200">Demo</Link>
+            <Link href="/onboarding" className="text-[0.65rem] font-medium tracking-widest uppercase text-white/40 hover:text-white/70 transition-colors duration-200">Profile</Link>
           </div>
-          <p className="text-xs text-muted">© {new Date().getFullYear()} EcoLens</p>
+          <p className="text-xs text-white/25">© {new Date().getFullYear()} EcoLens</p>
         </div>
       </footer>
 
