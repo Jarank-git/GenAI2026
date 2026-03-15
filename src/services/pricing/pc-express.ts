@@ -1,12 +1,13 @@
 import type { PriceResult } from "@/types/pricing";
 import { findMockPriceByName } from "@/data/mock-prices";
 
-const LOBLAW_BANNERS = ["loblaws", "nofrills", "superstore"] as const;
+const LOBLAW_BANNERS = ["loblaw", "nofrills", "superstore"] as const;
 
-const PC_EXPRESS_BASE_URL = "https://api.pcexpress.ca/product-facade/v3/products/search";
+const PC_EXPRESS_BASE_URL =
+  "https://api.pcexpress.ca/product-facade/v3/products/search";
 
 const BANNER_DISPLAY_NAMES: Record<string, string> = {
-  loblaws: "Loblaws",
+  loblaw: "Loblaws",
   nofrills: "No Frills",
   superstore: "Real Canadian Superstore",
 };
@@ -61,31 +62,55 @@ async function queryPCExpressReal(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "X-Apikey": apiKey,
-        "Site-Banner": banner,
+        "x-apikey": apiKey,
+        "site-banner": banner,
+        "business-user-agent": "PCXWEB",
+        "x-application-type": "web",
+        "x-channel": "web",
+        "x-loblaw-tenant-id": "ONLINE_GROCERIES",
+        Accept: "application/json, text/plain, */*",
       },
       body: JSON.stringify({
-        query: productName,
-        pagination: { from: 0, size: 1 },
+        term: productName,
+        pagination: { from: 0, size: 5 },
+        banner,
+        lang: "en",
+        pickupType: "STORE",
+        offerType: "ALL",
       }),
     });
 
     if (!response.ok) return null;
 
     const data = await response.json();
-    const product = data?.results?.[0];
+    const results = data?.results ?? data?.products ?? [];
+    const product = results[0];
     if (!product) return null;
+
+    // Handle various response price structures
+    const price =
+      product.prices?.price?.value ??
+      product.prices?.price ??
+      product.price ??
+      0;
+
+    const unitPrice =
+      product.prices?.comparisonPrices?.[0]?.value ??
+      product.unitPrice ??
+      null;
+
+    if (price <= 0) return null;
 
     return {
       store_name: BANNER_DISPLAY_NAMES[banner] ?? banner,
       banner,
-      price: product.price ?? 0,
-      unit_price: product.unitPrice ?? null,
+      price,
+      unit_price: unitPrice,
       confidence: "verified",
       source_url: null,
       distance_km: null,
       gas_cost: 0,
-      out_of_pocket: product.price ?? 0,
+      out_of_pocket: price,
     };
   } catch {
     return null;

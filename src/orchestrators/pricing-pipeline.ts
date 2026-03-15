@@ -22,14 +22,16 @@ export async function fetchAllPrices(
     };
   }
 
+  const postalCode = userProfile.postal_code ?? "M5V 1J2";
+
+  // Layer 1: PC Express (Loblaw banners — verified prices)
+  // Layer 2: Flipp API (non-Loblaw stores — flyer/sale prices)
   const [layer1Results, layer2Results] = await Promise.all([
     queryAllBanners(product.product_name),
-    queryNonLoblawStores(product.product_name, userProfile.city),
+    queryNonLoblawStores(product.product_name, userProfile.city, postalCode),
   ]);
 
-  const layer3Results: PriceResult[] = [];
-
-  const aggregated = aggregatePrices(layer1Results, layer2Results, layer3Results);
+  const aggregated = aggregatePrices(layer1Results, layer2Results);
 
   const gasData = await getGasPrice(userProfile.province, userProfile.city);
 

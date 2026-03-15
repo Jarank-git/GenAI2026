@@ -8,10 +8,9 @@ const CONFIDENCE_RANK: Record<string, number> = {
 
 export function aggregatePrices(
   layer1: PriceResult[],
-  layer2: PriceResult[],
-  layer3: PriceResult[]
+  layer2: PriceResult[]
 ): PriceResult[] {
-  const allPrices = [...layer1, ...layer2, ...layer3];
+  const allPrices = [...layer1, ...layer2];
 
   const deduped = new Map<string, PriceResult>();
 

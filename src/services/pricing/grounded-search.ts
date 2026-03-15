@@ -1,89 +1,84 @@
 import type { PriceResult } from "@/types/pricing";
 import { findMockPriceByName } from "@/data/mock-prices";
 
-const NON_LOBLAW_STORES = ["walmart", "metro", "sobeys"] as const;
+const FLIPP_SEARCH_URL =
+  "https://backflipp.wishabi.com/flipp/items/search";
 
-function isMockMode(): boolean {
-  return !process.env.GEMINI_API_KEY;
+const NON_LOBLAW_STORES = ["walmart", "metro", "sobeys", "freshco", "food basics", "save-on-foods"] as const;
+
+const STORE_BANNER_MAP: Record<string, string> = {
+  walmart: "walmart",
+  metro: "metro",
+  sobeys: "sobeys",
+  freshco: "freshco",
+  "food basics": "foodbasics",
+  "save-on-foods": "saveonfoods",
+};
+
+const STORE_DISPLAY_NAMES: Record<string, string> = {
+  walmart: "Walmart",
+  metro: "Metro",
+  sobeys: "Sobeys",
+  freshco: "FreshCo",
+  "food basics": "Food Basics",
+  "save-on-foods": "Save-On-Foods",
+};
+
+interface FlippItem {
+  name?: string;
+  price?: number;
+  current_price?: number | null;
+  pre_price_text?: string;
+  price_text?: string;
+  merchant?: string;
+  flyer_item_id?: number;
+  valid_from?: string;
+  valid_to?: string;
 }
 
-export async function queryGroundedPrice(
+export async function queryFlippPrice(
   productName: string,
   storeName: string,
-  _city: string
+  postalCode: string = "M5V 1J2"
 ): Promise<PriceResult | null> {
-  if (isMockMode()) {
-    return queryGroundedPriceMock(productName, storeName);
-  }
-
-  return queryGroundedPriceReal(productName, storeName, _city);
-}
-
-async function queryGroundedPriceMock(
-  productName: string,
-  banner: string
-): Promise<PriceResult | null> {
-  const entry = findMockPriceByName(productName);
-  if (!entry) return null;
-
-  const storeEntry = entry.stores.find((s) => s.banner === banner);
-  if (!storeEntry) return null;
-
-  return {
-    store_name: storeEntry.store_name,
-    banner: storeEntry.banner,
-    price: storeEntry.price,
-    unit_price: storeEntry.unit_price,
-    confidence: "web_estimate",
-    source_url: storeEntry.source_url,
-    distance_km: null,
-    gas_cost: 0,
-    out_of_pocket: storeEntry.price,
-  };
-}
-
-async function queryGroundedPriceReal(
-  productName: string,
-  storeName: string,
-  city: string
-): Promise<PriceResult | null> {
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) return null;
-
   try {
-    const prompt = `Find the current retail price for "${productName}" at ${storeName} in ${city}, Canada. Return ONLY factual pricing from current web sources. If you cannot find a verified price, say "not found". Do NOT guess or use training data for prices.`;
+    const query = `${productName} ${storeName}`;
+    const url = `${FLIPP_SEARCH_URL}?locale=en-ca&postal_code=${encodeURIComponent(postalCode)}&q=${encodeURIComponent(query)}`;
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          tools: [{ google_search_retrieval: {} }],
-        }),
-      }
-    );
+    const response = await fetch(url, {
+      headers: {
+        Accept: "application/json",
+      },
+    });
 
     if (!response.ok) return null;
 
     const data = await response.json();
-    const text = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
-    const sourceUrl = data?.candidates?.[0]?.groundingMetadata?.webSearchQueries?.[0] ?? null;
+    const items: FlippItem[] = data?.items ?? data ?? [];
 
-    const priceMatch = text.match(/\$(\d+\.?\d*)/);
-    if (!priceMatch) return null;
+    // Find best match — item from the target store
+    const storeMatch = items.find((item) =>
+      item.merchant?.toLowerCase().includes(storeName.toLowerCase())
+    );
 
-    const price = parseFloat(priceMatch[1]);
-    if (isNaN(price) || price <= 0) return null;
+    const item = storeMatch ?? items[0];
+    if (!item) return null;
+
+    const price = item.current_price ?? item.price ?? parseFlippPriceText(item.price_text);
+    if (!price || price <= 0) return null;
+
+    const banner = STORE_BANNER_MAP[storeName] ?? storeName.toLowerCase().replace(/\s+/g, "");
+    const displayName = item.merchant
+      ? item.merchant
+      : STORE_DISPLAY_NAMES[storeName] ?? storeName;
 
     return {
-      store_name: storeName.charAt(0).toUpperCase() + storeName.slice(1),
-      banner: storeName.toLowerCase(),
+      store_name: displayName,
+      banner,
       price,
       unit_price: null,
       confidence: "web_estimate",
-      source_url: sourceUrl,
+      source_url: null,
       distance_km: null,
       gas_cost: 0,
       out_of_pocket: price,
@@ -93,13 +88,23 @@ async function queryGroundedPriceReal(
   }
 }
 
+function parseFlippPriceText(text?: string): number | null {
+  if (!text) return null;
+  const match = text.match(/\$?(\d+\.?\d*)/);
+  if (!match) return null;
+  const price = parseFloat(match[1]);
+  return isNaN(price) || price <= 0 ? null : price;
+}
+
 export async function queryNonLoblawStores(
   productName: string,
-  city: string
+  _city: string,
+  postalCode: string = "M5V 1J2"
 ): Promise<PriceResult[]> {
+  // If no mock mode check needed — Flipp has no API key requirement
   const results = await Promise.all(
     NON_LOBLAW_STORES.map((store) =>
-      queryGroundedPrice(productName, store, city)
+      queryFlippPrice(productName, store, postalCode)
     )
   );
 
