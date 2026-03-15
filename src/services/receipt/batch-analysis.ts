@@ -5,7 +5,7 @@ import { scoreProduct } from "@/orchestrators/scoring-pipeline";
 import { calculateTotalExternality } from "@/orchestrators/externality-pipeline";
 import { mockAnalyzedItems } from "@/data/mock-receipt";
 
-const USE_MOCK = true;
+const USE_MOCK = !process.env.GEMINI_API_KEY;
 
 function receiptItemToProduct(item: ReceiptItem, index: number): Product {
   return {
@@ -25,11 +25,21 @@ export async function analyzeReceiptItems(
   items: ReceiptItem[],
   userProfile: UserProfile,
 ): Promise<AnalyzedReceiptItem[]> {
-  if (USE_MOCK) {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    return mockAnalyzedItems;
+  if (!USE_MOCK) {
+    try {
+      return await analyzeReceiptItemsReal(items, userProfile);
+    } catch (err) {
+      console.warn("Real receipt analysis failed, falling back to mock:", err);
+    }
   }
 
+  return mockAnalyzedItems;
+}
+
+async function analyzeReceiptItemsReal(
+  items: ReceiptItem[],
+  userProfile: UserProfile,
+): Promise<AnalyzedReceiptItem[]> {
   const results = await Promise.all(
     items.map(async (item, index) => {
       const product = receiptItemToProduct(item, index);

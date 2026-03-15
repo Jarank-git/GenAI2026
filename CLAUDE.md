@@ -227,14 +227,10 @@ Gemini NEVER generates prices from training data. All prices must come from:
 
 1. ~~**ProductResult race condition**~~ — **FIXED**. Externality fetch now chains after pricing resolves.
 2. ~~**Pricing pipeline TTL**~~ — **NOT A BUG**. `cachePrices(..., 1)` passes layer number (1 = 24h TTL), not TTL value.
-3. **Shelf page not wired** — `src/app/shelf/page.tsx` uses mock data, never calls `/api/shelf`.
-4. **Receipt services mock-locked** — `USE_MOCK = true` hardcoded in 4 receipt service files with no env var toggle.
+3. ~~**Shelf page not wired**~~ — **FIXED**. Shelf page now calls `/api/shelf` with real FormData upload.
+4. ~~**Receipt services mock-locked**~~ — **FIXED**. All 4 receipt services now check env vars (`CLOUDINARY_API_KEY`, `GEMINI_API_KEY`) and use real APIs when available, with mock as fallback.
 5. **url-context.ts no fallback** — Returns `null` without API key; no mock data path.
 
 ### Connections Still Needed
 
 - **Scan → Comparison**: No way to view alternatives after scanning a product. ComparisonView exists but isn't reachable from the scan flow.
-- **Shelf page → API**: Wire `shelf/page.tsx` to call `/api/shelf` instead of using mock data.
-- **Receipt mock toggle**: Replace hardcoded `USE_MOCK = true` with env-var-driven toggle.
-- **Lifecycle research**: Replace mock lookup in `src/services/externality/lifecycle.ts` with real Gemini API call.
-- **Recycling research**: Replace mock lookup in `src/services/hyperlocal/recycling.ts` with real Gemini API call.

@@ -101,11 +101,49 @@ export function getRecyclingForProvince(province: string): RecyclingResult {
 }
 
 async function getRecyclingWithGemini(city: string, apiKey: string): Promise<RecyclingResult> {
-  // TODO: Implement real Gemini API call to research municipal recycling capabilities
-  // Prompt: "What materials does the recycling program in {city}, Canada accept?
-  //  Specifically: #1-#7 plastics, glass, cardboard, aluminum, tetrapak, compostables"
-  // For now, fall back to mock data
-  console.warn(`Gemini recycling lookup not yet implemented for ${city}. Using mock data. API key present: ${!!apiKey}`);
+  // Check hardcoded data first (faster, no API cost)
   const cityKey = city.toLowerCase().trim();
-  return CITY_RECYCLING[cityKey] ?? FALLBACK;
+  if (CITY_RECYCLING[cityKey]) {
+    return CITY_RECYCLING[cityKey];
+  }
+
+  // For unknown cities, use Gemini to research
+  try {
+    const prompt = `What materials does the municipal recycling program in ${city}, Canada accept?
+
+List only the accepted materials using these standard codes:
+- Plastics: "#1 PET", "#2 HDPE", "#3 PVC", "#4 LDPE", "#5 PP", "#6 PS", "#7 Other"
+- Other: "glass", "cardboard", "aluminum", "steel", "paper", "cartons", "tetrapak", "styrofoam"
+
+Return JSON matching this schema exactly:
+{
+  "accepted_materials": ["<string>"],
+  "source": "<name of the recycling program>"
+}`;
+
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { responseMimeType: "application/json" },
+        }),
+      },
+    );
+
+    if (!res.ok) {
+      throw new Error(`Gemini API error: ${res.status}`);
+    }
+
+    const data = await res.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error("Empty Gemini response");
+
+    return JSON.parse(text) as RecyclingResult;
+  } catch (err) {
+    console.warn(`Gemini recycling lookup failed for ${city}, using fallback:`, err);
+    return FALLBACK;
+  }
 }

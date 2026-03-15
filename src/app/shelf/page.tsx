@@ -5,20 +5,20 @@ import Link from "next/link";
 import type {
   AnalyzedShelfProduct,
   ShelfOverlayMode,
+  ShelfScanResult,
 } from "@/types/shelf";
-import { mockDetectedProducts, mockIdentifiedProducts, mockAnalyzedProducts } from "@/data/mock-shelf";
 import ShelfScanner from "@/components/shelf/ShelfScanner";
 import ShelfOverlay from "@/components/shelf/ShelfOverlay";
 import ShelfProductDetail from "@/components/shelf/ShelfProductDetail";
 import ShelfSortToggle from "@/components/shelf/ShelfSortToggle";
+import { loadProfile } from "@/lib/profile-storage";
 
 type ScanPhase =
   | "idle"
   | "capturing"
-  | "detecting"
-  | "identifying"
-  | "analyzing"
-  | "complete";
+  | "processing"
+  | "complete"
+  | "error";
 
 export default function ShelfPage() {
   const [phase, setPhase] = useState<ScanPhase>("idle");
@@ -26,36 +26,42 @@ export default function ShelfPage() {
   const [overlayMode, setOverlayMode] = useState<ShelfOverlayMode>("score");
   const [selectedProduct, setSelectedProduct] = useState<AnalyzedShelfProduct | null>(null);
   const [products, setProducts] = useState<AnalyzedShelfProduct[]>([]);
-  const [detectedCount, setDetectedCount] = useState(0);
-  const [identifiedCount, setIdentifiedCount] = useState(0);
-  const [analyzedCount, setAnalyzedCount] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   const handleCapture = useCallback(async (file: File) => {
     const reader = new FileReader();
     reader.onload = async (ev) => {
       const dataUrl = ev.target?.result as string;
       setImageUrl(dataUrl);
-      setPhase("detecting");
+      setPhase("processing");
+      setErrorMessage("");
 
-      await delay(1200);
-      const detected = mockDetectedProducts;
-      setDetectedCount(detected.length);
-      setTotalCount(detected.length);
+      try {
+        const profile = loadProfile();
+        const formData = new FormData();
+        formData.append("image", file);
+        if (profile) {
+          formData.append("userProfile", JSON.stringify(profile));
+        }
 
-      setPhase("identifying");
-      await delay(1000);
-      setIdentifiedCount(mockIdentifiedProducts.length);
+        const res = await fetch("/api/shelf", {
+          method: "POST",
+          body: formData,
+        });
 
-      setPhase("analyzing");
-      const analyzed = mockAnalyzedProducts;
-      for (let i = 0; i < analyzed.length; i++) {
-        await delay(300);
-        setAnalyzedCount(i + 1);
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: "Unknown error" }));
+          throw new Error(err.error || `API error: ${res.status}`);
+        }
+
+        const result: ShelfScanResult = await res.json();
+        setProducts(result.products);
+        setPhase("complete");
+      } catch (err) {
+        console.error("Shelf scan failed:", err);
+        setErrorMessage(err instanceof Error ? err.message : "Shelf scan failed");
+        setPhase("error");
       }
-      setProducts(analyzed);
-
-      setPhase("complete");
     };
     reader.readAsDataURL(file);
   }, []);
@@ -65,10 +71,7 @@ export default function ShelfPage() {
     setImageUrl("");
     setProducts([]);
     setSelectedProduct(null);
-    setDetectedCount(0);
-    setIdentifiedCount(0);
-    setAnalyzedCount(0);
-    setTotalCount(0);
+    setErrorMessage("");
   }, []);
 
   const bestProduct = products.find((p) => p.is_best_on_shelf);
@@ -105,7 +108,7 @@ export default function ShelfPage() {
           </div>
         )}
 
-        {(phase === "detecting" || phase === "identifying" || phase === "analyzing") && (
+        {phase === "processing" && (
           <div className="flex w-full flex-col items-center gap-4">
             {imageUrl && (
               <div className="relative w-full overflow-hidden rounded-xl border border-border">
@@ -115,44 +118,26 @@ export default function ShelfPage() {
                     alt="Shelf being scanned"
                     className="absolute inset-0 h-full w-full object-cover opacity-70"
                   />
-                  {phase !== "detecting" &&
-                    mockDetectedProducts.map((d, i) => (
-                      <div
-                        key={i}
-                        className="absolute rounded border-2 border-accent/40"
-                        style={{
-                          left: `${d.bounding_box.x}%`,
-                          top: `${d.bounding_box.y}%`,
-                          width: `${d.bounding_box.width}%`,
-                          height: `${d.bounding_box.height}%`,
-                        }}
-                      >
-                        {(phase === "analyzing" || phase === "identifying") && (
-                          <span className="absolute bottom-0 left-0 right-0 truncate bg-surface-dark/60 px-1 py-0.5 text-[9px] font-light text-white">
-                            {mockIdentifiedProducts[i]?.product.product_name ?? "..."}
-                          </span>
-                        )}
-                      </div>
-                    ))}
                 </div>
               </div>
             )}
-
             <div className="eco-card flex w-full flex-col items-center gap-3 p-6">
               <div className="h-7 w-7 animate-spin rounded-full border-2 border-border border-t-accent" />
-              {phase === "detecting" && (
-                <p className="text-sm font-light text-muted">Detecting products...</p>
-              )}
-              {phase === "identifying" && (
-                <p className="text-sm font-light text-muted">
-                  Identifying {detectedCount} products...
-                </p>
-              )}
-              {phase === "analyzing" && (
-                <p className="text-sm font-light text-muted">
-                  Analyzing sustainability... {analyzedCount}/{totalCount}
-                </p>
-              )}
+              <p className="text-sm font-light text-muted">
+                Detecting, identifying, and analyzing products...
+              </p>
+            </div>
+          </div>
+        )}
+
+        {phase === "error" && (
+          <div className="flex w-full flex-col items-center gap-4">
+            <div className="eco-card flex w-full flex-col items-center gap-3 p-6 text-center">
+              <p className="text-sm font-semibold text-red-600">Scan Failed</p>
+              <p className="text-xs text-muted">{errorMessage}</p>
+              <button onClick={handleReset} className="btn-secondary mt-2">
+                Try Again
+              </button>
             </div>
           </div>
         )}
@@ -201,8 +186,4 @@ export default function ShelfPage() {
       </main>
     </div>
   );
-}
-
-function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }

@@ -1,47 +1,59 @@
 import { mockReceiptOCR } from "@/data/mock-receipt";
 
-const USE_MOCK = true;
+const USE_MOCK = !process.env.CLOUDINARY_API_KEY || !process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
 
 export async function processReceiptImage(
   imageFile: File,
 ): Promise<string[]> {
-  if (USE_MOCK) {
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    return mockReceiptOCR;
+  if (!USE_MOCK) {
+    try {
+      return await processReceiptImageReal(imageFile);
+    } catch (err) {
+      console.warn("Cloudinary receipt OCR failed, falling back to mock:", err);
+    }
   }
 
-  // Real implementation: Cloudinary upload with receipt-optimized transformations
-  // const formData = new FormData();
-  // formData.append("file", imageFile);
-  // formData.append("upload_preset", "receipt_scan");
-  //
-  // Transformations for receipt OCR:
-  // - c_limit,w_2000 (limit size for fast processing)
-  // - e_improve (auto-enhance)
-  // - e_grayscale (convert to grayscale for better OCR)
-  // - e_sharpen:150 (sharpen text edges)
-  // - e_contrast:50 (increase contrast for faded receipts)
-  //
-  // const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-  // const response = await fetch(
-  //   `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-  //   { method: "POST", body: formData }
-  // );
-  // const result = await response.json();
-  //
-  // OCR via Cloudinary add-on:
-  // const ocrResponse = await fetch(
-  //   `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-  //   {
-  //     method: "POST",
-  //     body: JSON.stringify({
-  //       file: result.secure_url,
-  //       ocr: "adv_ocr",
-  //     }),
-  //   }
-  // );
-  // const ocrResult = await ocrResponse.json();
-  // return ocrResult.info.ocr.adv_ocr.data[0].fullTextAnnotation.text.split("\n");
+  return mockReceiptOCR;
+}
 
-  throw new Error("Real Cloudinary OCR not configured. Set USE_MOCK = false and provide API keys.");
+async function processReceiptImageReal(imageFile: File): Promise<string[]> {
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME!;
+  const apiKey = process.env.CLOUDINARY_API_KEY!;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET!;
+
+  // Upload the receipt image to Cloudinary with OCR-optimized transformations
+  const arrayBuffer = await imageFile.arrayBuffer();
+  const base64 = Buffer.from(arrayBuffer).toString("base64");
+  const dataUri = `data:${imageFile.type || "image/jpeg"};base64,${base64}`;
+
+  const timestamp = Math.floor(Date.now() / 1000);
+  const paramsToSign = `folder=receipts&ocr=adv_ocr&timestamp=${timestamp}`;
+  const { createHash } = await import("crypto");
+  const signature = createHash("sha1").update(paramsToSign + apiSecret).digest("hex");
+
+  const formData = new FormData();
+  formData.append("file", dataUri);
+  formData.append("api_key", apiKey);
+  formData.append("timestamp", String(timestamp));
+  formData.append("signature", signature);
+  formData.append("folder", "receipts");
+  formData.append("ocr", "adv_ocr");
+
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    { method: "POST", body: formData },
+  );
+
+  if (!response.ok) {
+    throw new Error(`Cloudinary upload failed: ${response.status}`);
+  }
+
+  const result = await response.json();
+  const ocrText = result.info?.ocr?.adv_ocr?.data?.[0]?.fullTextAnnotation?.text;
+
+  if (!ocrText) {
+    throw new Error("No OCR text returned from Cloudinary");
+  }
+
+  return ocrText.split("\n").filter((line: string) => line.trim().length > 0);
 }

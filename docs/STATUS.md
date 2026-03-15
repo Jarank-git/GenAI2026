@@ -65,13 +65,13 @@
 | Service | File | Issue | TODO |
 |---------|------|-------|------|
 | URL Context pricing | services/pricing/url-context.ts | Returns null without API key, no mock fallback | Add mock fallback |
-| Lifecycle research | services/externality/lifecycle.ts | Looks up mock-lifecycle.ts only | Implement Gemini API call |
-| Recycling research | services/hyperlocal/recycling.ts | Hardcoded city lookup tables | Implement Gemini API call |
+| Lifecycle research | services/externality/lifecycle.ts | Real Gemini API with mock fallback | ~~Implement Gemini API call~~ Done |
+| Recycling research | services/hyperlocal/recycling.ts | Real Gemini API for unknown cities, hardcoded for known cities | ~~Implement Gemini API call~~ Done |
 | Gas price | services/hyperlocal/gas-price.ts | Hardcoded per-province prices | Real NRCan API (optional env var exists) |
-| Receipt OCR | services/receipt/image-processing.ts | `USE_MOCK = true` hardcoded | Toggle via env var |
-| Receipt fuzzy matching | services/receipt/fuzzy-matcher.ts | `USE_MOCK = true` hardcoded | Toggle via env var |
-| Receipt batch analysis | services/receipt/batch-analysis.ts | `USE_MOCK = true` hardcoded | Toggle via env var |
-| Receipt optimized basket | services/receipt/optimized-basket.ts | `USE_MOCK = true` hardcoded | Toggle via env var |
+| Receipt OCR | services/receipt/image-processing.ts | Real Cloudinary OCR with mock fallback | ~~Toggle via env var~~ Done |
+| Receipt fuzzy matching | services/receipt/fuzzy-matcher.ts | Real Gemini matching with mock fallback | ~~Toggle via env var~~ Done |
+| Receipt batch analysis | services/receipt/batch-analysis.ts | Real scoring pipeline with mock fallback | ~~Toggle via env var~~ Done |
+| Receipt optimized basket | services/receipt/optimized-basket.ts | Real analysis with mock fallback | ~~Toggle via env var~~ Done |
 | Shelf multi-detection | services/shelf/multi-detection.ts | Returns mock without Cloudinary key | Scaffold code in comments |
 | Shelf batch identify | services/shelf/batch-identify.ts | **Complete stub** — returns empty array | Needs full implementation |
 | Shelf parallel analysis | services/shelf/parallel-analysis.ts | Returns mock pre-analyzed products | Real mode calls orchestrators |
@@ -88,15 +88,13 @@
 - **File**: `src/orchestrators/pricing-pipeline.ts:42`
 - **Verified**: `cachePrices(product.product_id, withGasCosts, 1)` — the `1` is the **layer number** (Layer 1 = 24h TTL, Layer 2 = 48h TTL), not a TTL value. The cache implementation in `services/pricing/cache.ts` correctly maps layer → TTL.
 
-### 3. Shelf Page Not Wired to API
+### ~~3. Shelf Page Not Wired to API~~ — FIXED
 - **File**: `src/app/shelf/page.tsx`
-- **Problem**: Uses `mockDetectedProducts`, `mockIdentifiedProducts`, `mockAnalyzedProducts` from data files. Never calls `/api/shelf`.
-- **Impact**: Feature 08 is demo-only — real shelf scanning doesn't work.
+- **Fix applied**: Shelf page now calls `/api/shelf` with FormData upload. Mock data removed.
 
-### 4. Receipt Services Mock-Locked
+### ~~4. Receipt Services Mock-Locked~~ — FIXED
 - **Files**: 4 receipt service files
-- **Problem**: `USE_MOCK = true` hardcoded at top of each file. No env var toggle.
-- **Impact**: Receipt scanning always returns mock data regardless of available API keys.
+- **Fix applied**: All `USE_MOCK` constants now check for env vars (`CLOUDINARY_API_KEY`, `GEMINI_API_KEY`). Real APIs used when keys present, mock as fallback only.
 
 ### 5. URL Context No Fallback
 - **File**: `src/services/pricing/url-context.ts`

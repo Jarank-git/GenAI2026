@@ -36,7 +36,17 @@ function validateLifecycleData(data: LifecycleData): LifecycleData {
 export async function researchLifecycle(
   product: Product,
 ): Promise<LifecycleData> {
-  // Mock implementation: look up by product_id, then fuzzy name match
+  // Try real Gemini API first
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (apiKey) {
+    try {
+      return await researchLifecycleGemini(product, apiKey);
+    } catch (err) {
+      console.warn("Gemini lifecycle research failed, falling back to mock:", err);
+    }
+  }
+
+  // Mock fallback: look up by product_id, then fuzzy name match
   const byId = mockLifecycleData.find(
     (m) => m.product_id === product.product_id,
   );
@@ -56,21 +66,53 @@ export async function researchLifecycle(
     return validateLifecycleData(data);
   }
 
-  // TODO: Real Gemini API implementation
-  // const prompt = `For ${product.product_name} by ${product.brand}, estimate the environmental impact per unit sold in Canada:
-  //  1. Carbon: total kg CO2e across lifecycle
-  //  2. Water: total litres consumed in production
-  //  3. Plastic: grams of packaging by type
-  //  4. Land use: m² of land-use-change attributable
-  //  5. Eutrophication: fertilizer/chemical runoff index (0-10)`;
-  //
-  // const response = await geminiClient.generateContent({
-  //   contents: [{ role: "user", parts: [{ text: prompt }] }],
-  //   generationConfig: {
-  //     responseMimeType: "application/json",
-  //     responseSchema: lifecycleSchema,
-  //   },
-  // });
-
   return validateLifecycleData(DEFAULT_LIFECYCLE);
+}
+
+async function researchLifecycleGemini(
+  product: Product,
+  apiKey: string,
+): Promise<LifecycleData> {
+  const prompt = `For the product "${product.product_name}" by ${product.brand} (category: ${product.category}), estimate the environmental lifecycle impact per unit sold in Canada.
+
+Provide scientifically grounded estimates for:
+1. Carbon: total kg CO2e across full lifecycle (production, transport, retail, disposal)
+2. Water: total litres consumed in production
+3. Packaging: list each material with grams (use codes like PET_1, HDPE_2, PVC_3, LDPE_4, PP_5, PS_6, cardboard, aluminum, glass, paper)
+4. Land use: m² of land-use-change attributable to this product
+5. Land use commodity: primary agricultural commodity (e.g., "wheat", "palm oil", "soy", "beef")
+6. Eutrophication: fertilizer/chemical runoff index (0-10 scale, 10 = worst)
+
+Return JSON matching this schema exactly:
+{
+  "carbon_kg_co2e": <number>,
+  "water_litres": <number>,
+  "packaging": [{"material": "<string>", "grams": <number>}],
+  "land_use_m2": <number>,
+  "land_use_commodity": "<string>",
+  "eutrophication_index": <number>
+}`;
+
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { responseMimeType: "application/json" },
+      }),
+    },
+  );
+
+  if (!res.ok) {
+    throw new Error(`Gemini API error: ${res.status}`);
+  }
+
+  const data = await res.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error("Empty Gemini response");
+
+  const parsed = JSON.parse(text) as LifecycleData;
+  return validateLifecycleData(parsed);
 }
