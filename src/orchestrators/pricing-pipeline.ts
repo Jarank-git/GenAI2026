@@ -1,5 +1,5 @@
 import type { Product } from "@/types/product";
-import type { PricingResponse, PriceResult } from "@/types/pricing";
+import type { PricingResponse } from "@/types/pricing";
 import type { UserProfile } from "@/types/user-profile";
 import { queryAllBanners } from "@/services/pricing/pc-express";
 import { queryNonLoblawStores } from "@/services/pricing/grounded-search";

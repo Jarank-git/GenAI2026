@@ -93,7 +93,6 @@ export default function CostComparison({
   const reversalOccurs = aCheaperShelf !== aCheaperTotal;
 
   const cheaperShelfName = aCheaperShelf ? productA.name : productB.name;
-  const cheaperTotalName = aCheaperTotal ? productA.name : productB.name;
   const moreExpensiveShelfName = aCheaperShelf ? productB.name : productA.name;
 
   return (

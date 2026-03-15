@@ -1,6 +1,4 @@
 import type { PriceResult } from "@/types/pricing";
-import { findMockPriceByName } from "@/data/mock-prices";
-
 const FLIPP_SEARCH_URL =
   "https://backflipp.wishabi.com/flipp/items/search";
 

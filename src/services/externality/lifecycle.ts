@@ -51,7 +51,7 @@ export async function researchLifecycle(
     (m) => m.product_id === product.product_id,
   );
   if (byId) {
-    const { product_id: _, product_name: __, ...data } = byId;
+    const { product_id: _a, product_name: _b, ...data } = byId; // eslint-disable-line @typescript-eslint/no-unused-vars
     return validateLifecycleData(data);
   }
 
@@ -62,7 +62,7 @@ export async function researchLifecycle(
       m.product_name.toLowerCase().includes(nameLower),
   );
   if (byName) {
-    const { product_id: _, product_name: __, ...data } = byName;
+    const { product_id: _c, product_name: _d, ...data } = byName; // eslint-disable-line @typescript-eslint/no-unused-vars
     return validateLifecycleData(data);
   }
 

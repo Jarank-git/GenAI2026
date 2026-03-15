@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import type {
   AnalyzedShelfProduct,
@@ -113,10 +114,12 @@ export default function ShelfPage() {
             {imageUrl && (
               <div className="relative w-full overflow-hidden rounded-xl border border-border">
                 <div className="relative w-full" style={{ paddingBottom: "66.67%" }}>
-                  <img
+                  <Image
                     src={imageUrl}
                     alt="Shelf being scanned"
                     className="absolute inset-0 h-full w-full object-cover opacity-70"
+                    fill
+                    unoptimized
                   />
                 </div>
               </div>

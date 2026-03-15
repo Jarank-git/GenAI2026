@@ -1,23 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 
-export default function Home() {
-  const [profileCity, setProfileCity] = useState<string | null>(null);
-  const [menuOpen, setMenuOpen] = useState(false);
-
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("ecolens-profile");
-      if (stored) {
-        const profile = JSON.parse(stored);
-        if (profile.city) setProfileCity(profile.city);
-      }
-    } catch {
-      // ignore parse errors
+function getStoredCity(): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = localStorage.getItem("ecolens-profile");
+    if (stored) {
+      const profile = JSON.parse(stored);
+      return profile.city ?? null;
     }
-  }, []);
+  } catch {
+    // ignore parse errors
+  }
+  return null;
+}
+
+export default function Home() {
+  const [profileCity] = useState<string | null>(getStoredCity);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <div className="min-h-screen bg-background">

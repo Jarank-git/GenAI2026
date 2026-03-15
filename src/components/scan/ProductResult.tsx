@@ -5,7 +5,6 @@ import type { Product } from "@/types/product";
 import type { SustainabilityScore } from "@/types/scoring";
 import type { Externality } from "@/types/externality";
 import type { PricingResponse } from "@/types/pricing";
-import type { UserProfile } from "@/types/user-profile";
 import ExternalityBreakdown from "@/components/externality/ExternalityBreakdown";
 import { loadProfile } from "@/lib/profile-storage";
 

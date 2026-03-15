@@ -26,6 +26,7 @@ const DEFAULT_GAS_PRICE: GasPriceResult = {
   last_updated: "2026-03-14",
 };
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function getGasPrice(province: string, _city?: string): Promise<GasPriceResult> {
   const nrcanEndpoint = process.env.NRCAN_GAS_PRICE_URL;
 

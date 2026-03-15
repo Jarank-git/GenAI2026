@@ -3,7 +3,10 @@
     "allow": [
       "Bash(gh auth:*)",
       "Bash(gh repo:*)",
-      "Bash(npx vercel:*)"
+      "Bash(npx vercel:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx next:*)"
     ]
   }
 }

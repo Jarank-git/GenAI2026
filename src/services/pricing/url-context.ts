@@ -2,6 +2,9 @@ export async function extractPriceFromURL(
   _productPageUrl: string
 ): Promise<number | null> {
   if (!process.env.GEMINI_API_KEY) {
+    // Mock fallback: return null gracefully (no mock price for arbitrary URLs)
+    // This prevents Layer 3 from silently failing without explanation
+    console.info("url-context: No GEMINI_API_KEY, skipping URL price extraction");
     return null;
   }
 

@@ -14,13 +14,29 @@ async function identifyWithGemini(input: CloudinaryOutput): Promise<Product> {
   const apiKey = process.env.GEMINI_API_KEY!;
   const prompt = buildPrompt(input);
 
+  // Build multimodal parts: image first, then text prompt
+  const parts: Record<string, unknown>[] = [];
+
+  // Fetch the product image and include it for visual identification
+  const imageBase64 = await fetchImageAsBase64(input.image_url);
+  if (imageBase64) {
+    parts.push({
+      inlineData: {
+        mimeType: imageBase64.mimeType,
+        data: imageBase64.data,
+      },
+    });
+  }
+
+  parts.push({ text: prompt });
+
   const res = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
+        contents: [{ parts }],
         generationConfig: {
           responseMimeType: "application/json",
           responseSchema: {
@@ -78,23 +94,44 @@ async function identifyWithGemini(input: CloudinaryOutput): Promise<Product> {
   };
 }
 
+async function fetchImageAsBase64(
+  imageUrl: string
+): Promise<{ data: string; mimeType: string } | null> {
+  try {
+    const res = await fetch(imageUrl);
+    if (!res.ok) return null;
+
+    const contentType = res.headers.get("content-type") || "image/jpeg";
+    const arrayBuffer = await res.arrayBuffer();
+    const base64 = Buffer.from(arrayBuffer).toString("base64");
+
+    return { data: base64, mimeType: contentType };
+  } catch {
+    return null;
+  }
+}
+
 function buildPrompt(input: CloudinaryOutput): string {
   const parts: string[] = [
-    "Identify this product from the following label information.",
-    "Return a JSON object with: product_name, brand, category, weight_volume, confidence (0-1).",
+    "Look at this product image carefully. Identify the exact product, brand, and size from what you see on the packaging.",
+    "Pay close attention to the brand name, logo, product name, and weight/volume printed on the label.",
+    "Return a JSON object with: product_name (specific product name), brand (exact brand name visible on packaging), category, weight_volume, confidence (0-1).",
   ];
 
   if (input.brand_detected) {
-    parts.push(`Detected brand: ${input.brand_detected}`);
+    parts.push(`OCR detected a possible brand: ${input.brand_detected}`);
   }
   if (input.ocr_text.length > 0) {
-    parts.push(`OCR text from label: ${input.ocr_text.join(", ")}`);
+    parts.push(
+      `Additional OCR text from label (may contain errors): ${input.ocr_text.join(", ")}`
+    );
   }
   if (input.barcode) {
     parts.push(`Barcode: ${input.barcode}`);
   }
 
   parts.push(
+    "Use the image as your primary source. The OCR text above is supplementary and may contain errors.",
     'Categories must be one of: food_beverage, cleaning, personal_care, clothing, electronics, home_goods.'
   );
 

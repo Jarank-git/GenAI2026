@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 
 interface ShelfScannerProps {
   onCapture: (file: File) => void;
@@ -45,10 +46,13 @@ export default function ShelfScanner({
 
       {preview ? (
         <div className="w-full max-w-md overflow-hidden rounded-xl border border-gray-200 shadow-sm">
-          <img
+          <Image
             src={preview}
             alt="Shelf preview"
             className="h-56 w-full object-cover"
+            width={448}
+            height={224}
+            unoptimized
           />
         </div>
       ) : (

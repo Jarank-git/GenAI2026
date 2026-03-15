@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Image from "next/image";
 
 interface ReceiptUploadProps {
   onUpload: (file: File) => void;
@@ -48,10 +49,13 @@ export default function ReceiptUpload({
 
       {preview ? (
         <div className="w-full max-w-sm overflow-hidden rounded-xl border border-gray-200 shadow-sm">
-          <img
+          <Image
             src={preview}
             alt="Receipt preview"
             className="h-64 w-full object-cover"
+            width={384}
+            height={256}
+            unoptimized
           />
         </div>
       ) : (

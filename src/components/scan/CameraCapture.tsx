@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 
 interface CameraCaptureProps {
   onCapture: (file: File) => void;
@@ -35,10 +36,13 @@ export default function CameraCapture({
     <div className="flex flex-col items-center gap-6">
       {preview ? (
         <div className="relative w-full max-w-sm overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-700">
-          <img
+          <Image
             src={preview}
             alt="Product preview"
             className="h-64 w-full object-cover"
+            width={384}
+            height={256}
+            unoptimized
           />
           {isScanning && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/50">

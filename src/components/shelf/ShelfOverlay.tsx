@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { AnalyzedShelfProduct, ShelfOverlayMode } from "@/types/shelf";
 
 interface ShelfOverlayProps {
@@ -110,10 +111,12 @@ export default function ShelfOverlay({
   return (
     <div className="relative w-full overflow-hidden rounded-xl bg-gray-200">
       <div className="relative w-full" style={{ paddingBottom: "66.67%" }}>
-        <img
+        <Image
           src={imageUrl}
           alt="Grocery shelf"
           className="absolute inset-0 h-full w-full object-cover"
+          fill
+          unoptimized
         />
         {products.map((product) => {
           const box = product.detected.bounding_box;
