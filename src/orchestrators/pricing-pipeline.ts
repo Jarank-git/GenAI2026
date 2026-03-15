@@ -50,5 +50,6 @@ export async function fetchAllPrices(
     fetched_at: new Date().toISOString(),
     gas_price_per_litre: gasData.price_per_litre,
     user_province: userProfile.province,
+    maps_api_key: process.env.GOOGLE_MAPS_API_KEY || undefined,
   };
 }

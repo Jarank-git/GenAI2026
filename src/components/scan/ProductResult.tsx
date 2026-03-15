@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import type { Product } from "@/types/product";
 import type { SustainabilityScore } from "@/types/scoring";
 import type { Externality } from "@/types/externality";
-import type { PricingResponse } from "@/types/pricing";
+import type { PricingResponse, PriceResult } from "@/types/pricing";
 import ExternalityBreakdown from "@/components/externality/ExternalityBreakdown";
 import { loadProfile } from "@/lib/profile-storage";
 
@@ -22,427 +22,426 @@ const categoryLabels: Record<string, string> = {
   home_goods: "Home Goods",
 };
 
-const FACTOR_INFO: Record<
-  string,
-  { label: string; icon: string; good: string; bad: string }
-> = {
-  transport: {
-    label: "Transport Distance",
+/* ── Factor metadata with tiered explanations ── */
+const FACTORS: {
+  key: keyof import("@/types/scoring").FactorScores;
+  label: string;
+  icon: string;
+  tiers: [string, string, string]; // [good >=70, mixed 40-69, bad <40]
+}[] = [
+  {
+    key: "transport",
+    label: "Transport",
     icon: "\u{1F69B}",
-    good: "Sourced locally or regionally, low transport emissions",
-    bad: "Shipped long distances, high transport carbon footprint",
+    tiers: [
+      "Produced nearby \u2014 low shipping emissions",
+      "Moderate distance \u2014 some shipping emissions",
+      "Shipped very far \u2014 high carbon from transport",
+    ],
   },
-  packaging: {
+  {
+    key: "packaging",
     label: "Packaging",
     icon: "\u{1F4E6}",
-    good: "Minimal, recyclable, or compostable packaging",
-    bad: "Excessive or non-recyclable packaging materials",
+    tiers: [
+      "Minimal or recyclable packaging",
+      "Some non-recyclable materials",
+      "Heavy or non-recyclable packaging",
+    ],
   },
-  certifications: {
+  {
+    key: "certifications",
     label: "Certifications",
     icon: "\u2705",
-    good: "Certified organic, Fair Trade, B Corp, or similar",
-    bad: "No recognized sustainability certifications",
+    tiers: [
+      "Certified organic, Fair Trade, or equivalent",
+      "Some certifications present",
+      "No sustainability certifications found",
+    ],
   },
-  brand_ethics: {
+  {
+    key: "brand_ethics",
     label: "Brand Ethics",
     icon: "\u{1F91D}",
-    good: "Strong ESG practices, transparent supply chain",
-    bad: "Poor labor or environmental track record",
+    tiers: [
+      "Strong transparency & ethical practices",
+      "Mixed record on ethics & supply chain",
+      "Concerns about labor or environment",
+    ],
   },
-  production: {
-    label: "Production Method",
+  {
+    key: "production",
+    label: "Production",
     icon: "\u{1F3ED}",
-    good: "Low-impact, efficient, or regenerative processes",
-    bad: "High energy, chemical-intensive, or wasteful production",
+    tiers: [
+      "Efficient, low-impact manufacturing",
+      "Standard industrial production",
+      "Energy-intensive or wasteful processes",
+    ],
   },
-  end_of_life: {
-    label: "End of Life",
+  {
+    key: "end_of_life",
+    label: "Recyclability",
     icon: "\u267B\uFE0F",
-    good: "Fully recyclable, reusable, or biodegradable",
-    bad: "Difficult to recycle, ends up in landfill",
+    tiers: [
+      "Fully recyclable or compostable",
+      "Partially recyclable",
+      "Mostly ends up in landfill",
+    ],
   },
-};
+];
 
-function scoreColor(score: number): string {
-  if (score >= 80) return "text-green-600";
-  if (score >= 60) return "text-lime-600";
-  if (score >= 40) return "text-yellow-600";
-  if (score >= 20) return "text-orange-600";
+function scoreColor(s: number) {
+  if (s >= 80) return "text-green-600";
+  if (s >= 60) return "text-lime-600";
+  if (s >= 40) return "text-yellow-600";
+  if (s >= 20) return "text-orange-600";
   return "text-red-600";
 }
-
-function scoreBgColor(score: number): string {
-  if (score >= 80) return "bg-green-100 text-green-800";
-  if (score >= 60) return "bg-lime-100 text-lime-800";
-  if (score >= 40) return "bg-yellow-100 text-yellow-800";
-  if (score >= 20) return "bg-orange-100 text-orange-800";
+function scoreBg(s: number) {
+  if (s >= 80) return "bg-green-100 text-green-800";
+  if (s >= 60) return "bg-lime-100 text-lime-800";
+  if (s >= 40) return "bg-yellow-100 text-yellow-800";
+  if (s >= 20) return "bg-orange-100 text-orange-800";
   return "bg-red-100 text-red-800";
 }
-
-function barColor(value: number): string {
-  if (value >= 70) return "bg-green-500";
-  if (value >= 40) return "bg-yellow-500";
+function barBg(v: number) {
+  if (v >= 70) return "bg-green-500";
+  if (v >= 40) return "bg-yellow-500";
   return "bg-red-500";
 }
-
-function factorExplanation(value: number, info: { good: string; bad: string }): string {
-  if (value >= 70) return info.good;
-  if (value >= 40) return `Mixed — some room for improvement`;
-  return info.bad;
+function tierText(v: number, tiers: [string, string, string]) {
+  if (v >= 70) return tiers[0];
+  if (v >= 40) return tiers[1];
+  return tiers[2];
 }
 
-function confidenceBadge(confidence: number) {
-  if (confidence >= 0.9) {
-    return (
-      <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-xs font-medium text-emerald-800">
-        High confidence
-      </span>
-    );
-  }
-  if (confidence >= 0.7) {
-    return (
-      <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
-        Medium confidence
-      </span>
-    );
-  }
+function ExternalLinkIcon() {
   return (
-    <span className="rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800">
-      Low confidence
-    </span>
+    <svg className="inline h-3 w-3 ml-0.5 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-4.5-6H18m0 0v4.5m0-4.5L10.5 13.5" />
+    </svg>
   );
 }
 
-type AnalysisState = "loading" | "loaded" | "error";
+/* ── Store row with link, distance, gas, total ── */
+function StoreRow({ p, isLowest }: { p: PriceResult; isLowest: boolean }) {
+  return (
+    <div className={`flex items-center justify-between px-4 py-3 ${isLowest ? "bg-emerald-50/50 dark:bg-emerald-950/20" : ""}`}>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5">
+          {isLowest && <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Best</span>}
+          {p.source_url ? (
+            <a href={p.source_url} target="_blank" rel="noopener noreferrer"
+              className="text-sm font-semibold text-emerald-700 underline decoration-emerald-200 underline-offset-2 hover:text-emerald-900 hover:decoration-emerald-400 dark:text-emerald-400 truncate">
+              {p.store_name}<ExternalLinkIcon />
+            </a>
+          ) : (
+            <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">{p.store_name}</span>
+          )}
+        </div>
+        <div className="flex items-center gap-2 mt-0.5">
+          {p.distance_km !== null && (
+            <span className="text-[10px] text-zinc-400">{p.distance_km.toFixed(1)} km</span>
+          )}
+          {p.gas_cost > 0 && (
+            <span className="text-[10px] text-zinc-400">+${p.gas_cost.toFixed(2)} gas</span>
+          )}
+          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
+            p.confidence === "verified" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"
+          }`}>
+            {p.confidence === "verified" ? "\u2713 Verified" : "~ Estimate"}
+          </span>
+        </div>
+      </div>
+      <div className="text-right pl-3">
+        <p className="text-base font-bold text-zinc-900 dark:text-zinc-100">${p.price.toFixed(2)}</p>
+        <p className="text-[10px] text-zinc-400">${p.out_of_pocket.toFixed(2)} total</p>
+      </div>
+    </div>
+  );
+}
 
-export default function ProductResult({
-  product,
-  onScanAnother,
-}: ProductResultProps) {
+type Tab = "overview" | "pricing" | "externality";
+type State = "loading" | "loaded" | "error";
+
+export default function ProductResult({ product, onScanAnother }: ProductResultProps) {
   const [scoring, setScoring] = useState<SustainabilityScore | null>(null);
   const [externality, setExternality] = useState<Externality | null>(null);
   const [pricing, setPricing] = useState<PricingResponse | null>(null);
-  const [scoringState, setScoringState] = useState<AnalysisState>("loading");
-  const [externalityState, setExternalityState] = useState<AnalysisState>("loading");
-  const [pricingState, setPricingState] = useState<AnalysisState>("loading");
-  const [activeTab, setActiveTab] = useState<"overview" | "pricing" | "externality">("overview");
+  const [sState, setSState] = useState<State>("loading");
+  const [eState, setEState] = useState<State>("loading");
+  const [pState, setPState] = useState<State>("loading");
+  const [tab, setTab] = useState<Tab>("overview");
   const [expandedFactor, setExpandedFactor] = useState<string | null>(null);
+  const [mapStore, setMapStore] = useState<PriceResult | null>(null);
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
     const profile = loadProfile();
-    if (profile?.coordinates) {
-      setUserCoords(profile.coordinates);
-    }
+    if (profile?.coordinates) setUserCoords(profile.coordinates);
     const body = JSON.stringify({ product, userProfile: profile ?? undefined });
-    const headers = { "Content-Type": "application/json" };
+    const h = { "Content-Type": "application/json" };
 
-    fetch("/api/score", { method: "POST", headers, body })
+    fetch("/api/score", { method: "POST", headers: h, body })
       .then((r) => r.json())
-      .then((data) => {
-        if (data.error) throw new Error(data.error);
-        setScoring(data);
-        setScoringState("loaded");
-      })
-      .catch(() => setScoringState("error"));
+      .then((d) => { if (d.error) throw new Error(d.error); setScoring(d); setSState("loaded"); })
+      .catch(() => setSState("error"));
 
-    fetch("/api/pricing", { method: "POST", headers, body })
+    fetch("/api/pricing", { method: "POST", headers: h, body })
       .then((r) => r.json())
-      .then((data) => {
-        if (data.error) throw new Error(data.error);
-        setPricing(data);
-        setPricingState("loaded");
-        return data;
+      .then((d) => {
+        if (d.error) throw new Error(d.error);
+        setPricing(d);
+        setPState("loaded");
+        setMapStore(d.prices?.[0] ?? null);
+        return d;
       })
-      .then((pricingData) => {
-        const bestPrice = pricingData.prices?.[0]?.price;
-        const extBody = JSON.stringify({
-          product,
-          userProfile: profile ?? undefined,
-          shelfPrice: bestPrice,
-        });
-        return fetch("/api/externality", { method: "POST", headers, body: extBody })
+      .then((pd) => {
+        const extBody = JSON.stringify({ product, userProfile: profile ?? undefined, shelfPrice: pd.prices?.[0]?.price });
+        return fetch("/api/externality", { method: "POST", headers: h, body: extBody })
           .then((r) => r.json())
-          .then((data) => {
-            if (data.error) throw new Error(data.error);
-            setExternality(data);
-            setExternalityState("loaded");
-          })
-          .catch(() => setExternalityState("error"));
+          .then((d) => { if (d.error) throw new Error(d.error); setExternality(d); setEState("loaded"); })
+          .catch(() => setEState("error"));
       })
-      .catch(() => {
-        setPricingState("error");
-        setExternalityState("error");
-      });
+      .catch(() => { setPState("error"); setEState("error"); });
   }, [product]);
 
-  const isLoading =
-    scoringState === "loading" ||
-    pricingState === "loading" ||
-    externalityState === "loading";
-
-  const lowestPrice = pricing?.prices?.[0];
+  const loading = sState === "loading" || pState === "loading" || eState === "loading";
+  const best = pricing?.prices?.[0];
+  const mapsKey = pricing?.maps_api_key;
 
   return (
-    <div className="w-full max-w-md">
-      {/* Product Identity Card */}
+    <div className="w-full max-w-md space-y-4">
+      {/* ─── Product Header ─── */}
       <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-        <div className="mb-3 flex items-start justify-between gap-2">
+        <div className="flex items-start justify-between gap-2">
           <div>
-            <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-              {product.product_name}
-            </h2>
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{product.product_name}</h2>
             <p className="text-sm text-zinc-500">{product.brand} · {categoryLabels[product.category]} · {product.weight_volume}</p>
           </div>
-          {confidenceBadge(product.confidence)}
+          <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            product.confidence >= 0.9 ? "bg-emerald-100 text-emerald-800" :
+            product.confidence >= 0.7 ? "bg-amber-100 text-amber-800" : "bg-red-100 text-red-800"
+          }`}>
+            {product.confidence >= 0.9 ? "High" : product.confidence >= 0.7 ? "Medium" : "Low"} confidence
+          </span>
         </div>
 
-        {/* Score + Quick Stats */}
-        {scoringState === "loaded" && scoring ? (
-          <div className="mt-4 grid grid-cols-3 gap-3">
-            <div className="rounded-xl bg-zinc-50 p-3 text-center dark:bg-zinc-800">
-              <p className="text-[10px] uppercase tracking-wide text-zinc-400">Score</p>
-              <p className={`text-2xl font-bold ${scoreColor(scoring.final_score)}`}>
-                {scoring.final_score}
-              </p>
-              <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[10px] font-semibold ${scoreBgColor(scoring.final_score)}`}>
-                {scoring.label}
-              </span>
+        {/* Quick stats row */}
+        {sState === "loaded" && scoring ? (
+          <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="rounded-xl bg-zinc-50 p-2.5 text-center dark:bg-zinc-800">
+              <p className="text-[9px] uppercase tracking-widest text-zinc-400">Score</p>
+              <p className={`text-2xl font-black ${scoreColor(scoring.final_score)}`}>{scoring.final_score}</p>
+              <span className={`inline-block rounded-full px-2 py-0.5 text-[9px] font-bold ${scoreBg(scoring.final_score)}`}>{scoring.label}</span>
             </div>
-            <div className="rounded-xl bg-zinc-50 p-3 text-center dark:bg-zinc-800">
-              <p className="text-[10px] uppercase tracking-wide text-zinc-400">Best Price</p>
-              <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-                {lowestPrice ? `$${lowestPrice.price.toFixed(2)}` : "\u2014"}
-              </p>
-              {lowestPrice && (
-                <p className="mt-1 text-[10px] text-zinc-400 truncate">{lowestPrice.store_name}</p>
-              )}
+            <div className="rounded-xl bg-zinc-50 p-2.5 text-center dark:bg-zinc-800">
+              <p className="text-[9px] uppercase tracking-widest text-zinc-400">Cheapest</p>
+              <p className="text-2xl font-black text-zinc-900 dark:text-zinc-100">{best ? `$${best.price.toFixed(2)}` : "\u2014"}</p>
+              {best && <p className="text-[9px] text-zinc-400 truncate">{best.store_name}</p>}
             </div>
-            <div className="rounded-xl bg-zinc-50 p-3 text-center dark:bg-zinc-800">
-              <p className="text-[10px] uppercase tracking-wide text-zinc-400">True Cost</p>
-              <p className="text-2xl font-bold text-red-600">
-                {externality ? `$${externality.total_cost.toFixed(2)}` : "\u2014"}
-              </p>
-              {externality && (
-                <p className="mt-1 text-[10px] text-red-400">+${externality.externality_cost.toFixed(2)} hidden</p>
-              )}
+            <div className="rounded-xl bg-zinc-50 p-2.5 text-center dark:bg-zinc-800">
+              <p className="text-[9px] uppercase tracking-widest text-zinc-400">True Cost</p>
+              <p className="text-2xl font-black text-red-600">{externality ? `$${externality.total_cost.toFixed(2)}` : "\u2014"}</p>
+              {externality && <p className="text-[9px] text-red-400">+${externality.externality_cost.toFixed(2)} hidden</p>}
             </div>
           </div>
-        ) : scoringState === "loading" ? (
+        ) : sState === "loading" ? (
           <div className="mt-4 flex items-center justify-center gap-3 rounded-xl bg-zinc-50 p-6 dark:bg-zinc-800">
             <div className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-500 border-t-transparent" />
-            <p className="text-sm text-zinc-500">Analyzing sustainability, pricing & true cost...</p>
+            <p className="text-sm text-zinc-500">Analyzing...</p>
           </div>
         ) : (
           <div className="mt-4 rounded-xl bg-red-50 p-4 text-center text-sm text-red-600 dark:bg-red-950 dark:text-red-400">
-            Analysis could not be completed. Try again later.
+            Analysis unavailable
           </div>
         )}
       </div>
 
-      {/* Tab Navigation */}
-      {!isLoading && (scoringState === "loaded" || pricingState === "loaded" || externalityState === "loaded") && (
-        <div className="mt-4">
+      {/* ─── Tabs ─── */}
+      {!loading && (sState === "loaded" || pState === "loaded") && (
+        <>
           <div className="flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
-            {(["overview", "pricing", "externality"] as const).map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
+            {([
+              ["overview", "Why This Score"],
+              ["pricing", "Where to Buy"],
+              ["externality", "Hidden Costs"],
+            ] as [Tab, string][]).map(([t, label]) => (
+              <button key={t} onClick={() => setTab(t)}
                 className={`flex-1 rounded-lg py-2 text-xs font-semibold transition-colors ${
-                  activeTab === tab
-                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100"
-                    : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400"
-                }`}
-              >
-                {tab === "overview" ? "Score Breakdown" : tab === "pricing" ? "Store Prices" : "True Cost"}
+                  tab === t ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-zinc-100" : "text-zinc-500 hover:text-zinc-700 dark:text-zinc-400"
+                }`}>
+                {label}
               </button>
             ))}
           </div>
 
-          {/* ─── Overview Tab — Score Breakdown ─── */}
-          {activeTab === "overview" && scoring && (
-            <div className="mt-3 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-              {/* Score summary */}
-              <div className="mb-4 rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800">
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  This score is a weighted average of 6 sustainability factors, adjusted for your location.
+          {/* ═══════ WHY THIS SCORE ═══════ */}
+          {tab === "overview" && scoring && (
+            <div className="space-y-3">
+              {/* TL;DR summary */}
+              <div className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-2">Quick Summary</h3>
+                <p className="text-sm text-zinc-700 dark:text-zinc-300 leading-relaxed">
+                  {product.product_name} scores <strong className={scoreColor(scoring.final_score)}>{scoring.final_score}/100</strong> ({scoring.label}).
+                  {" "}
+                  {scoring.final_score >= 70
+                    ? "This is a solid choice for sustainability."
+                    : scoring.final_score >= 40
+                    ? "There are some areas where this product could be more sustainable."
+                    : "This product has significant sustainability concerns."
+                  }
                   {scoring.base_score !== scoring.final_score && (
-                    <span> Base score was <strong>{scoring.base_score}</strong>, adjusted to <strong>{scoring.final_score}</strong> by local factors.</span>
+                    <span className="text-zinc-500"> Your local area adjusted the score from {scoring.base_score} to {scoring.final_score}.</span>
                   )}
                 </p>
               </div>
 
-              <h3 className="mb-3 text-sm font-semibold text-zinc-700 dark:text-zinc-300">Factor Scores</h3>
-              <div className="space-y-1">
-                {(Object.keys(FACTOR_INFO) as Array<keyof typeof FACTOR_INFO>).map((key) => {
-                  const info = FACTOR_INFO[key];
-                  const value = scoring.factors[key as keyof typeof scoring.factors];
-                  const isExpanded = expandedFactor === key;
-
-                  return (
-                    <div key={key}>
-                      <button
-                        onClick={() => setExpandedFactor(isExpanded ? null : key)}
-                        className="flex w-full items-center gap-3 rounded-lg px-1 py-1.5 text-left transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
-                      >
-                        <span className="text-sm">{info.icon}</span>
-                        <span className="w-28 text-xs text-zinc-600 dark:text-zinc-400">{info.label}</span>
-                        <div className="flex-1 h-2 rounded-full bg-zinc-100 dark:bg-zinc-800">
-                          <div
-                            className={`h-2 rounded-full ${barColor(value)}`}
-                            style={{ width: `${value}%` }}
-                          />
+              {/* Factor bars — always show explanation inline */}
+              <div className="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <div className="px-4 pt-4 pb-2">
+                  <h3 className="text-xs font-bold uppercase tracking-widest text-zinc-400">6 Factors</h3>
+                </div>
+                <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                  {FACTORS.map(({ key, label, icon, tiers }) => {
+                    const v = scoring.factors[key];
+                    const expanded = expandedFactor === key;
+                    return (
+                      <button key={key} onClick={() => setExpandedFactor(expanded ? null : key)}
+                        className="w-full text-left px-4 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm w-5 text-center">{icon}</span>
+                          <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300 w-20">{label}</span>
+                          <div className="flex-1 h-2 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                            <div className={`h-full rounded-full transition-all ${barBg(v)}`} style={{ width: `${v}%` }} />
+                          </div>
+                          <span className={`text-xs font-bold w-7 text-right ${v >= 70 ? "text-green-600" : v >= 40 ? "text-yellow-600" : "text-red-600"}`}>{v}</span>
                         </div>
-                        <span className="w-8 text-right text-xs font-semibold text-zinc-700 dark:text-zinc-300">{value}</span>
-                        <span className="text-[10px] text-zinc-400">{isExpanded ? "\u25B2" : "\u25BC"}</span>
-                      </button>
-                      {isExpanded && (
-                        <div className="ml-8 mb-2 rounded-lg bg-zinc-50 p-2.5 dark:bg-zinc-800">
-                          <p className="text-xs text-zinc-600 dark:text-zinc-400">
-                            <span className={`font-semibold ${value >= 70 ? "text-green-600" : value >= 40 ? "text-yellow-600" : "text-red-600"}`}>
-                              {value >= 70 ? "Good" : value >= 40 ? "Average" : "Needs improvement"}
-                            </span>
-                            {" \u2014 "}
-                            {factorExplanation(value, info)}
+                        {expanded && (
+                          <p className="mt-1.5 ml-7 text-[11px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                            {tierText(v, tiers)}
                           </p>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Local adjustments */}
+              {scoring.adjustments.length > 0 && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 dark:border-amber-800 dark:bg-amber-950">
+                  <h4 className="text-xs font-bold uppercase tracking-widest text-amber-700 dark:text-amber-400 mb-2">Your Area</h4>
+                  <div className="space-y-1.5">
+                    {scoring.adjustments.map((a, i) => (
+                      <div key={i} className="flex items-start gap-2">
+                        <span className="text-amber-600 text-xs mt-0.5">{a.penalty_points > 0 ? "\u25BC" : "\u25B2"}</span>
+                        <p className="text-xs text-amber-800 dark:text-amber-300 flex-1">{a.reason}</p>
+                        <span className={`text-xs font-bold ${a.penalty_points > 0 ? "text-red-600" : "text-green-600"}`}>
+                          {a.penalty_points > 0 ? "-" : "+"}{Math.abs(a.penalty_points)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ═══════ WHERE TO BUY ═══════ */}
+          {tab === "pricing" && pricing && (
+            <div className="space-y-3">
+              {/* Gas + context bar */}
+              <div className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <div className="flex items-center gap-1.5 flex-1">
+                  <span className="text-sm">{"\u26FD"}</span>
+                  <span className="text-xs text-zinc-500">Gas ({pricing.user_province ?? "ON"})</span>
+                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">
+                    ${pricing.gas_price_per_litre?.toFixed(2) ?? "?"}/L
+                  </span>
+                </div>
+                <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-zinc-500">Stores</span>
+                  <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100">{pricing.prices.length}</span>
+                </div>
+              </div>
+
+              {/* Store list */}
+              <div className="rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden dark:border-zinc-700 dark:bg-zinc-900">
+                <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                  {pricing.prices.map((p, i) => (
+                    <div key={i}>
+                      <StoreRow p={p} isLowest={i === 0} />
+                      {/* Map toggle per store */}
+                      {userCoords && mapsKey && p.distance_km !== null && (
+                        <div className="px-4 pb-2">
+                          <button
+                            onClick={() => setMapStore(mapStore?.store_name === p.store_name ? null : p)}
+                            className="text-[10px] text-emerald-600 hover:text-emerald-800 font-medium"
+                          >
+                            {mapStore?.store_name === p.store_name ? "\u25B2 Hide route" : "\u25BC Show route"}
+                          </button>
+                        </div>
+                      )}
+                      {/* Inline map for selected store */}
+                      {mapStore?.store_name === p.store_name && userCoords && mapsKey && (
+                        <div className="border-t border-zinc-100 dark:border-zinc-800">
+                          <iframe
+                            className="w-full h-52 border-0"
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            src={`https://www.google.com/maps/embed/v1/directions?key=${mapsKey}&origin=${userCoords.lat},${userCoords.lng}&destination=${encodeURIComponent(p.store_name + " near " + (pricing.user_province === "ON" ? "Toronto" : pricing.user_province === "BC" ? "Vancouver" : pricing.user_province === "AB" ? "Calgary" : "Canada"))}&mode=driving&zoom=12`}
+                            allowFullScreen
+                          />
+                          <div className="px-4 py-2 bg-zinc-50 dark:bg-zinc-800 flex items-center justify-between">
+                            <span className="text-[10px] text-zinc-500">
+                              {p.distance_km?.toFixed(1)} km &middot; Round trip gas: <strong className="text-zinc-700 dark:text-zinc-300">${p.gas_cost.toFixed(2)}</strong>
+                            </span>
+                            <span className="text-[10px] text-zinc-500">
+                              Out-of-pocket: <strong className="text-zinc-700 dark:text-zinc-300">${p.out_of_pocket.toFixed(2)}</strong>
+                            </span>
+                          </div>
                         </div>
                       )}
                     </div>
-                  );
-                })}
-              </div>
-
-              {scoring.adjustments.length > 0 && (
-                <div className="mt-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                  <h4 className="mb-2 text-xs font-semibold text-zinc-500">Location-Based Adjustments</h4>
-                  <p className="mb-2 text-[10px] text-zinc-400">These adjustments reflect environmental factors specific to your area.</p>
-                  {scoring.adjustments.map((adj, i) => (
-                    <div key={i} className="flex items-start justify-between py-1.5 gap-2">
-                      <span className="text-xs text-zinc-600 dark:text-zinc-400 flex-1">{adj.reason}</span>
-                      <span className={`text-xs font-semibold whitespace-nowrap ${adj.penalty_points < 0 ? "text-green-600" : "text-red-600"}`}>
-                        {adj.penalty_points > 0 ? "-" : "+"}{Math.abs(adj.penalty_points)} pts
-                      </span>
-                    </div>
                   ))}
                 </div>
-              )}
-            </div>
-          )}
+              </div>
 
-          {/* ─── Pricing Tab ─── */}
-          {activeTab === "pricing" && pricing && (
-            <div className="mt-3 space-y-3">
-              {/* Gas price info */}
-              {pricing.gas_price_per_litre && (
-                <div className="flex items-center justify-between rounded-xl border border-zinc-200 bg-white px-4 py-3 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm">{"\u26FD"}</span>
-                    <span className="text-xs text-zinc-600 dark:text-zinc-400">
-                      Current gas price ({pricing.user_province ?? "ON"})
-                    </span>
+              {/* Cost comparison insight */}
+              {best && externality && (
+                <div className="rounded-xl border border-zinc-200 bg-gradient-to-r from-zinc-50 to-red-50 p-4 shadow-sm dark:border-zinc-700 dark:from-zinc-900 dark:to-red-950">
+                  <p className="text-xs text-zinc-500 mb-1">Total out-of-pocket vs true cost</p>
+                  <div className="flex items-baseline gap-3">
+                    <span className="text-lg font-black text-zinc-900 dark:text-zinc-100">${best.out_of_pocket.toFixed(2)}</span>
+                    <span className="text-zinc-400">{"\u2192"}</span>
+                    <span className="text-lg font-black text-red-600">${externality.total_cost.toFixed(2)}</span>
                   </div>
-                  <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                    ${pricing.gas_price_per_litre.toFixed(2)}/L
-                  </span>
-                </div>
-              )}
-
-              {/* Store list */}
-              <div className="rounded-xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <div className="p-4 pb-2">
-                  <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-                    Prices at {pricing.prices.length} stores
-                  </h3>
-                  <p className="text-[10px] text-zinc-400 mt-0.5">
-                    Click a store name to view the product listing
+                  <p className="text-[10px] text-zinc-500 mt-1">
+                    You pay ${best.out_of_pocket.toFixed(2)} (shelf + gas). Society absorbs an additional ${externality.externality_cost.toFixed(2)} in environmental costs.
                   </p>
                 </div>
-                <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
-                  {pricing.prices.map((p, i) => (
-                    <div key={i} className="flex items-center justify-between px-4 py-3">
-                      <div>
-                        {p.source_url ? (
-                          <a
-                            href={p.source_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="group inline-flex items-center gap-1"
-                          >
-                            <span className="text-sm font-medium text-emerald-700 underline decoration-emerald-300 underline-offset-2 group-hover:text-emerald-900 group-hover:decoration-emerald-500 dark:text-emerald-400 dark:group-hover:text-emerald-300">
-                              {p.store_name}
-                            </span>
-                            <svg className="h-3 w-3 text-emerald-500 opacity-70 group-hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-4.5-6H18m0 0v4.5m0-4.5L10.5 13.5" />
-                            </svg>
-                          </a>
-                        ) : (
-                          <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{p.store_name}</p>
-                        )}
-                        <div className="flex items-center gap-2 mt-0.5">
-                          {p.distance_km !== null && (
-                            <span className="text-[10px] text-zinc-400">{p.distance_km.toFixed(1)} km</span>
-                          )}
-                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-medium ${
-                            p.confidence === "verified"
-                              ? "bg-green-100 text-green-700"
-                              : "bg-amber-100 text-amber-700"
-                          }`}>
-                            {p.confidence === "verified" ? "\u2713 Verified" : "~ Estimate"}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-base font-bold text-zinc-900 dark:text-zinc-100">${p.price.toFixed(2)}</p>
-                        {p.gas_cost > 0 && (
-                          <p className="text-[10px] text-zinc-400">+${p.gas_cost.toFixed(2)} gas</p>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Google Maps Embed — show route from user to cheapest store */}
-              {userCoords && lowestPrice && lowestPrice.distance_km !== null && (
-                <div className="rounded-xl border border-zinc-200 bg-white shadow-sm overflow-hidden dark:border-zinc-700 dark:bg-zinc-900">
-                  <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
-                    <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-                      Route to {lowestPrice.store_name}
-                    </h3>
-                    <p className="text-[10px] text-zinc-400">
-                      {lowestPrice.distance_km.toFixed(1)} km away &middot; Gas cost: ${lowestPrice.gas_cost.toFixed(2)}
-                    </p>
-                  </div>
-                  <iframe
-                    className="w-full h-48 border-0"
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    src={`https://www.google.com/maps/embed/v1/directions?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_EMBED_KEY ?? ""}&origin=${userCoords.lat},${userCoords.lng}&destination=${encodeURIComponent(lowestPrice.store_name + " near me")}&mode=driving`}
-                    allowFullScreen
-                  />
-                </div>
               )}
             </div>
           )}
 
-          {/* ─── Externality Tab ─── */}
-          {activeTab === "externality" && externality && (
-            <div className="mt-3">
+          {/* ═══════ HIDDEN COSTS ═══════ */}
+          {tab === "externality" && externality && (
+            <div className="space-y-3">
               <ExternalityBreakdown
                 externality={externality}
-                shelfPrice={lowestPrice?.price}
-                gasCost={lowestPrice?.gas_cost}
+                shelfPrice={best?.price}
+                gasCost={best?.gas_cost}
               />
             </div>
           )}
-        </div>
+        </>
       )}
 
-      <button
-        onClick={onScanAnother}
-        className="mt-5 w-full rounded-full border border-zinc-300 py-3 text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800"
-      >
+      <button onClick={onScanAnother}
+        className="w-full rounded-full border border-zinc-300 py-3 text-sm font-semibold text-zinc-700 transition-colors hover:bg-zinc-100 dark:border-zinc-600 dark:text-zinc-300 dark:hover:bg-zinc-800">
         Scan another product
       </button>
     </div>

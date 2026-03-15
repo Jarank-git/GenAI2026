@@ -19,4 +19,5 @@ export interface PricingResponse {
   fetched_at: string;
   gas_price_per_litre?: number;
   user_province?: string;
+  maps_api_key?: string;
 }
