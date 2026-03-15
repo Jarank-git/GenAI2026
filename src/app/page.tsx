@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 
 function getStoredCity(): string | null {
@@ -13,6 +13,30 @@ function getStoredCity(): string | null {
     }
   } catch { }
   return null;
+}
+
+// Scroll-triggered reveal hook
+function useReveal(threshold = 0.12) {
+  const ref = useRef<HTMLElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.unobserve(el);
+        }
+      },
+      { threshold }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [threshold]);
+
+  return [ref, visible] as const;
 }
 
 const TICKER_ITEMS = [
@@ -59,13 +83,19 @@ export default function Home() {
   const [profileCity] = useState<string | null>(getStoredCity);
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Reveal refs for each section
+  const [approachRef, approachVisible] = useReveal();
+  const [stepsRef, stepsVisible] = useReveal();
+  const [featuresRef, featuresVisible] = useReveal();
+  const [ctaRef, ctaVisible] = useReveal();
+
   return (
     <div className="min-h-screen bg-background">
 
       {/* ── Navigation ── */}
       <nav className="relative z-50 px-6 md:px-10">
         <div className="mx-auto flex max-w-7xl items-center justify-between border-b border-border py-6">
-          <Link href="/" className="text-display text-xl tracking-tight text-foreground">
+          <Link href="/" className="text-display text-xl tracking-tight text-foreground transition-opacity duration-200 hover:opacity-70">
             EcoLens
           </Link>
           <div className="hidden items-center gap-8 md:flex">
@@ -78,13 +108,13 @@ export default function Home() {
           </div>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="text-[0.65rem] tracking-widest uppercase text-muted md:hidden"
+            className="text-[0.65rem] tracking-widest uppercase text-muted transition-colors duration-200 hover:text-foreground md:hidden"
           >
             {menuOpen ? "Close" : "Menu"}
           </button>
         </div>
         {menuOpen && (
-          <div className="border-b border-border bg-background px-6 py-6 md:hidden">
+          <div className="animate-fade-in border-b border-border bg-background px-6 py-6 md:hidden">
             <div className="flex flex-col gap-5">
               <a href="#how-it-works" onClick={() => setMenuOpen(false)} className="text-editorial text-2xl text-foreground">How It Works</a>
               <a href="#features" onClick={() => setMenuOpen(false)} className="text-editorial text-2xl text-foreground">Features</a>
@@ -103,21 +133,21 @@ export default function Home() {
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 items-end gap-16 md:grid-cols-[1fr_200px] md:gap-24">
             <div>
-              <p className="section-label mb-8">Canadian Sustainability Intelligence</p>
-              <h1 className="text-display hero-headline">
+              <p className="section-label mb-8 animate-fade-up">Canadian Sustainability Intelligence</p>
+              <h1 className="text-display hero-headline animate-fade-up delay-1">
                 Every product<br />
                 carries a hidden<br />
                 <em className="text-accent">price tag.</em>
               </h1>
-              <p className="mt-8 max-w-md text-base font-light leading-relaxed text-muted">
+              <p className="mt-8 max-w-md text-base font-light leading-relaxed text-muted animate-fade-up delay-2">
                 EcoLens reveals the full cost of what you buy — carbon, water, packaging, and land use — priced in real dollars and personalized to where you live in Canada.
               </p>
-              <div className="mt-10 flex flex-wrap gap-4">
+              <div className="mt-10 flex flex-wrap gap-4 animate-fade-up delay-3">
                 <Link href="/scan" className="btn-primary">Scan a Product</Link>
                 <a href="#how-it-works" className="btn-secondary">How It Works</a>
               </div>
             </div>
-            <div className="hidden flex-col gap-0 pb-1 md:flex">
+            <div className="hidden flex-col gap-0 pb-1 md:flex animate-fade-up delay-2">
               <StatCallout value="~$190" label="CAD per tonne CO₂" />
               <StatCallout value="77×" label="grid emissions spread" />
               <StatCallout value="3" label="pricing layers" />
@@ -127,7 +157,7 @@ export default function Home() {
       </section>
 
       {/* ── Ticker ── */}
-      <div className="overflow-hidden border-y border-border bg-card py-3">
+      <div className="ticker-container overflow-hidden border-y border-border bg-card py-3">
         <div className="ticker-track flex whitespace-nowrap">
           {TICKER_ITEMS.map((item, i) => (
             <span key={i} className="px-6 text-[0.65rem] uppercase tracking-widest text-muted">
@@ -138,27 +168,30 @@ export default function Home() {
       </div>
 
       {/* ── Approach ── */}
-      <section className="border-b border-border px-6 py-20 md:px-10 md:py-28">
+      <section
+        ref={approachRef as React.RefObject<HTMLElement>}
+        className={`border-b border-border px-6 py-20 md:px-10 md:py-28 reveal ${approachVisible ? "is-visible" : ""}`}
+      >
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 gap-12 md:grid-cols-[180px_1fr]">
             <div className="pt-1">
               <p className="section-label">Our Approach</p>
             </div>
             <div>
-              <p className="pull-quote text-foreground">
+              <p className={`pull-quote text-foreground ${approachVisible ? "is-visible" : ""}`}>
                 Most sustainability apps give you a score.<br />
                 EcoLens gives you <em>the math</em> — numbers built on peer-reviewed science, adjusted to your life.
               </p>
               <div className="mt-12 grid grid-cols-3 gap-8 border-t border-border pt-8">
-                <div>
+                <div className={`reveal ${approachVisible ? "is-visible reveal-delay-1" : ""}`}>
                   <p className="text-display tabular text-3xl text-accent">5</p>
                   <p className="mt-1 text-xs font-light leading-snug text-muted">externality cost calculators</p>
                 </div>
-                <div>
+                <div className={`reveal ${approachVisible ? "is-visible reveal-delay-2" : ""}`}>
                   <p className="text-display tabular text-3xl text-accent">7</p>
                   <p className="mt-1 text-xs font-light leading-snug text-muted">hyperlocal dimensions</p>
                 </div>
-                <div>
+                <div className={`reveal ${approachVisible ? "is-visible reveal-delay-3" : ""}`}>
                   <p className="text-display tabular text-3xl text-accent">3</p>
                   <p className="mt-1 text-xs font-light leading-snug text-muted">pricing layers, always sourced</p>
                 </div>
@@ -169,7 +202,11 @@ export default function Home() {
       </section>
 
       {/* ── How It Works ── */}
-      <section id="how-it-works" className="border-b border-border px-6 py-20 md:px-10 md:py-28">
+      <section
+        id="how-it-works"
+        ref={stepsRef as React.RefObject<HTMLElement>}
+        className={`border-b border-border px-6 py-20 md:px-10 md:py-28 reveal ${stepsVisible ? "is-visible" : ""}`}
+      >
         <div className="mx-auto max-w-7xl">
           <p className="section-label mb-16">How It Works</p>
           <div className="grid grid-cols-1 gap-0 md:grid-cols-2">
@@ -178,8 +215,11 @@ export default function Home() {
               { n: "02", title: "We fetch real prices", body: "Three layers pull verified prices from Loblaw banners, live web sources, and retailer pages. If a price cannot be found, we say so." },
               { n: "03", title: "We calculate the true cost", body: "Carbon, water, packaging, and land use are each converted to a dollar amount using Canadian environmental research. Your province and vehicle factor in." },
               { n: "04", title: "You decide with full information", body: "Sort alternatives four ways. Greenest, cheapest, best value ratio, or lowest environmental damage. The choice is yours." },
-            ].map((s) => (
-              <div key={s.n} className="border-t border-border py-10 pr-0 md:pr-16">
+            ].map((s, i) => (
+              <div
+                key={s.n}
+                className={`border-t border-border py-10 pr-0 md:pr-16 reveal ${stepsVisible ? `is-visible reveal-delay-${i + 1}` : ""}`}
+              >
                 <span className="text-[0.65rem] uppercase tracking-widest text-muted">{s.n}</span>
                 <h3 className="text-editorial mt-3 mb-3 text-2xl text-foreground">{s.title}</h3>
                 <p className="max-w-[45ch] text-sm font-light leading-relaxed text-muted">{s.body}</p>
@@ -190,25 +230,29 @@ export default function Home() {
       </section>
 
       {/* ── Features ── */}
-      <section id="features" className="border-b border-border px-6 py-20 md:px-10 md:py-28">
+      <section
+        id="features"
+        ref={featuresRef as React.RefObject<HTMLElement>}
+        className={`border-b border-border px-6 py-20 md:px-10 md:py-28 reveal ${featuresVisible ? "is-visible" : ""}`}
+      >
         <div className="mx-auto max-w-7xl">
           <div className="mb-4 flex items-end justify-between border-b border-border pb-6">
             <p className="section-label">Features</p>
             <Link href="/demo" className="nav-link">View Demo →</Link>
           </div>
-          {FEATURES.map((f) => (
+          {FEATURES.map((f, i) => (
             <Link
               key={f.number}
               href={f.href}
-              className="group grid grid-cols-[48px_1fr_24px] items-baseline gap-6 border-b border-border py-6 transition-opacity duration-200 hover:opacity-70 md:grid-cols-[64px_1fr_24px]"
+              className={`feature-row-link group grid grid-cols-[48px_1fr_24px] items-center gap-6 border-b border-border py-6 md:grid-cols-[64px_1fr_24px] reveal ${featuresVisible ? `is-visible reveal-delay-${Math.min(i + 1, 3)}` : ""}`}
             >
-              <span className="text-[0.65rem] uppercase tracking-widest text-muted pt-0.5">{f.number}</span>
+              <span className="text-[0.65rem] uppercase tracking-widest text-muted pt-0.5 transition-colors duration-200 group-hover:text-accent">{f.number}</span>
               <div>
-                <h3 className="text-editorial text-xl text-foreground">{f.title}</h3>
+                <h3 className="text-editorial text-xl text-foreground transition-colors duration-200 group-hover:text-accent">{f.title}</h3>
                 <p className="mt-1 text-sm font-light leading-relaxed text-muted max-w-[60ch]">{f.description}</p>
               </div>
               <svg
-                className="h-4 w-4 text-muted/40 transition-transform duration-200 group-hover:translate-x-1 group-hover:text-accent"
+                className="h-4 w-4 text-muted/40 transition-all duration-200 group-hover:translate-x-1 group-hover:text-accent"
                 fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
               >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
@@ -219,7 +263,10 @@ export default function Home() {
       </section>
 
       {/* ── CTA ── */}
-      <section className="px-6 py-20 md:px-10 md:py-28">
+      <section
+        ref={ctaRef as React.RefObject<HTMLElement>}
+        className={`px-6 py-20 md:px-10 md:py-28 reveal ${ctaVisible ? "is-visible" : ""}`}
+      >
         <div className="mx-auto max-w-7xl">
           <div className="grid grid-cols-1 items-center gap-12 md:grid-cols-2">
             <div>
@@ -260,13 +307,14 @@ export default function Home() {
           <p className="text-xs text-muted">© {new Date().getFullYear()} EcoLens</p>
         </div>
       </footer>
+
     </div>
   );
 }
 
 function StatCallout({ value, label }: { value: string; label: string }) {
   return (
-    <div className="border-t border-border pt-5 pb-5 last:pb-0">
+    <div className="stat-callout border-t border-border pt-5 pb-5 last:pb-0">
       <p className="text-display tabular text-2xl text-foreground">{value}</p>
       <p className="mt-1 max-w-[14ch] text-xs font-light leading-snug text-muted">{label}</p>
     </div>

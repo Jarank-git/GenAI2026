@@ -515,3 +515,158 @@ html {
 .profile-row:last-child {
   border-bottom: none;
 }
+
+/* ─── Scroll Reveal ──────────────────────────────────── */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ─── Button Active / Press State ────────────────────── */
+
+.btn-primary:active {
+  transform: scale(0.96);
+  transition-duration: 0.08s;
+}
+
+.btn-secondary:active {
+  transform: scale(0.96);
+  transition-duration: 0.08s;
+}
+
+/* ─── Nav Link Animated Underline ────────────────────── */
+
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--foreground);
+  transition: width 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) {
+  .nav-link:hover::after {
+    width: 100%;
+  }
+}
+
+/* ─── Feature Row Hover Accent ───────────────────────── */
+
+.feature-row-link {
+  position: relative;
+  padding-left: 0;
+  transition: padding-left 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.feature-row-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%) scaleY(0);
+  width: 2px;
+  height: 50%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  transform-origin: center;
+}
+
+@media (hover: hover) {
+  .feature-row-link:hover {
+    padding-left: 12px;
+  }
+
+  .feature-row-link:hover::before {
+    transform: translateY(-50%) scaleY(1);
+  }
+}
+
+/* ─── Ticker Edge Fade Mask ──────────────────────────── */
+
+.ticker-container {
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 8%,
+    black 92%,
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent 0%,
+    black 8%,
+    black 92%,
+    transparent 100%
+  );
+}
+
+/* ─── Section Divider Pulse ──────────────────────────── */
+
+@keyframes borderPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ─── Stat Callout Hover ─────────────────────────────── */
+
+.stat-callout {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (hover: hover) {
+  .stat-callout:hover {
+    transform: translateX(4px);
+  }
+}
+
+/* ─── Pull Quote Em Underline ────────────────────────── */
+
+.pull-quote em {
+  position: relative;
+  font-style: italic;
+}
+
+.pull-quote em::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.3s;
+}
+
+.pull-quote.is-visible em::after {
+  transform: scaleX(1);
+}

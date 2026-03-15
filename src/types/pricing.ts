@@ -17,4 +17,7 @@ export interface PricingResponse {
   prices: PriceResult[];
   cached: boolean;
   fetched_at: string;
+  gas_price_per_litre?: number;
+  user_province?: string;
+  maps_api_key?: string;
 }

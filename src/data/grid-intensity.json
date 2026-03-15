@@ -1,0 +1,124 @@
+{
+  "AB": {
+    "gco2_per_kwh": 370,
+    "generation_mix": {
+      "natural_gas": 64,
+      "coal": 4,
+      "wind": 18,
+      "hydro": 6,
+      "solar": 4,
+      "other": 4
+    }
+  },
+  "BC": {
+    "gco2_per_kwh": 10,
+    "generation_mix": {
+      "hydro": 91,
+      "natural_gas": 5,
+      "biomass": 2,
+      "wind": 1,
+      "other": 1
+    }
+  },
+  "MB": {
+    "gco2_per_kwh": 2.5,
+    "generation_mix": {
+      "hydro": 97,
+      "wind": 2,
+      "natural_gas": 1
+    }
+  },
+  "NB": {
+    "gco2_per_kwh": 270,
+    "generation_mix": {
+      "natural_gas": 30,
+      "nuclear": 25,
+      "hydro": 20,
+      "coal": 12,
+      "wind": 8,
+      "biomass": 5
+    }
+  },
+  "NL": {
+    "gco2_per_kwh": 20,
+    "generation_mix": {
+      "hydro": 95,
+      "oil": 3,
+      "wind": 2
+    }
+  },
+  "NS": {
+    "gco2_per_kwh": 670,
+    "generation_mix": {
+      "coal": 40,
+      "natural_gas": 25,
+      "wind": 15,
+      "hydro": 10,
+      "biomass": 5,
+      "tidal": 3,
+      "other": 2
+    }
+  },
+  "NT": {
+    "gco2_per_kwh": 170,
+    "generation_mix": {
+      "hydro": 55,
+      "diesel": 30,
+      "natural_gas": 10,
+      "solar": 5
+    }
+  },
+  "NU": {
+    "gco2_per_kwh": 840,
+    "generation_mix": {
+      "diesel": 95,
+      "solar": 5
+    }
+  },
+  "ON": {
+    "gco2_per_kwh": 25,
+    "generation_mix": {
+      "nuclear": 55,
+      "hydro": 25,
+      "natural_gas": 10,
+      "wind": 7,
+      "solar": 2,
+      "biomass": 1
+    }
+  },
+  "PE": {
+    "gco2_per_kwh": 5,
+    "generation_mix": {
+      "wind": 95,
+      "oil": 5
+    }
+  },
+  "QC": {
+    "gco2_per_kwh": 1.2,
+    "generation_mix": {
+      "hydro": 95,
+      "wind": 4,
+      "biomass": 1
+    }
+  },
+  "SK": {
+    "gco2_per_kwh": 480,
+    "generation_mix": {
+      "natural_gas": 45,
+      "coal": 20,
+      "hydro": 15,
+      "wind": 12,
+      "solar": 5,
+      "other": 3
+    }
+  },
+  "YT": {
+    "gco2_per_kwh": 80,
+    "generation_mix": {
+      "hydro": 75,
+      "diesel": 15,
+      "wind": 5,
+      "solar": 5
+    }
+  }
+}
